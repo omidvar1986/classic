@@ -1,0 +1,94 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Track Your Typing Order" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-bar-container { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+    .progress-step { text-align: center; flex: 1; position: relative; }
+    .progress-step .step-circle { 
+        width: 30px; height: 30px; border-radius: 50%; 
+        background-color: #e9ecef; border: 3px solid #dee2e6;
+        display: inline-block; line-height: 24px; color: #495057;
+    }
+    .progress-step.active .step-circle { background-color: #ffc107; border-color: #ffc107; }
+    .progress-step.completed .step-circle { background-color: #28a745; border-color: #28a745; color: white; }
+    .progress-step::after {
+        content: ''; position: absolute; top: 15px; left: 50%;
+        width: 100%; height: 2px; background-color: #e9ecef; z-index: -1;
+    }
+    .progress-step:last-child::after { display: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h4><i class="fas fa-tasks me-2"></i>{% trans "Track Your Order" %}</h4>
+        </div>
+        <div class="card-body p-4">
+
+            <!-- Search Form -->
+            <form method="get" class="mb-4 p-3 bg-light rounded border">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md">
+                        <label for="order_id" class="form-label">{% trans "Order ID" %}</label>
+                        <input type="text" name="order_id" id="order_id" class="form-control" value="{{ request.GET.order_id|default:'' }}" required>
+                    </div>
+                    <div class="col-md">
+                        <label for="email" class="form-label">{% trans "Your Email" %}</label>
+                        <input type="email" name="email" id="email" class="form-control" value="{{ request.GET.email|default:'' }}" required>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i> {% trans "Track" %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            {% if order %}
+                <!-- Order Details -->
+                <div class="text-center mb-4">
+                    <h3>{% trans "Status for Order" %} #{{ order.id }}</h3>
+                    <p class="lead">{% trans "Current Status:" %} 
+                        <span class="fw-bold
+                            {% if 'completed' in order.status %}text-success
+                            {% elif 'rejected' in order.status %}text-danger
+                            {% elif 'awaiting' in order.status %}text-warning
+                            {% else %}text-primary{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+
+                <!-- Visual Progress Bar -->
+                {% include 'typing_service/partials/progress_bar.html' %}
+
+                <!-- Action Required Section -->
+                <div class="action-section my-4">
+                    {% if order.status == 'awaiting_payment' %}
+                        {% include 'typing_service/partials/action_payment.html' %}
+                    {% elif order.status == 'awaiting_final_approval' %}
+                        {% include 'typing_service/partials/action_final_approval.html' %}
+                    {% elif order.status == 'completed' %}
+                        {% include 'typing_service/partials/action_completed.html' %}
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {% trans "Your order is currently being processed. We will notify you of any updates." %}
+                        </div>
+                    {% endif %}
+                </div>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

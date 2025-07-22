@@ -1,0 +1,33 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Order Submitted" %}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="fas fa-check-circle me-2"></i>{% trans "Your Order Has Been Submitted!" %}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="lead">{% trans "Thank you for your request. Our team will review your document and set a price soon." %}</p>
+                    <hr>
+                    <h4 class="mb-3">{% trans "Order ID:" %} <span class="text-primary">#{{ order.id }}</span></h4>
+                    {% if order.user_email %}
+                        <h5>{% trans "Email:" %} <span class="text-secondary">{{ order.user_email }}</span></h5>
+                    {% endif %}
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% trans "Please save your Order ID and email. You will need them to track your order status, upload payment, and download your file." %}
+                    </div>
+                    <a href="{% url 'typing_service:track_order' %}?order_id={{ order.id }}{% if order.user_email %}&email={{ order.user_email }}{% endif %}" class="btn btn-primary btn-lg mt-3">
+                        <i class="fas fa-search me-2"></i>{% trans "Track My Order" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

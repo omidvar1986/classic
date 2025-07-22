@@ -1,0 +1,14 @@
+.dropzone-area {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dropzone-area:hover,
+.dropzone-area.dragover {
+    border-color: #28a745;
+    background-color: #e9f7ef;
+}

@@ -1,0 +1,140 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Smart Office - Your Digital Business Partner" %}{% endblock %}
+
+{% block content %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 100px 0;
+    }
+    .service-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 15px;
+    }
+    .service-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .service-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 mb-4">{% trans "Welcome to Smart Office" %}</h1>
+        <p class="lead mb-4">{% trans "Your complete digital business solution for printing, government services, and more!" %}</p>
+        <a href="/print/" class="btn btn-light btn-lg">
+            <i class="fas fa-print me-2"></i>{% trans "Start Printing Now" %}
+        </a>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Our Services" %}</h2>
+        <div class="row g-4">
+            <!-- Print Service -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card service-card h-100 text-center">
+                    <div class="card-body">
+                        <div class="service-icon text-primary">
+                            <i class="fas fa-print"></i>
+                        </div>
+                        <h5 class="card-title">🟢 {% trans "Print & Copy Service" %}</h5>
+                        <p class="card-text">{% trans "Upload files online, choose print options, and get your documents printed and delivered." %}</p>
+                        <a href="/print/" class="btn btn-primary">{% trans "Use Service" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Government Services -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card service-card h-100 text-center">
+                    <div class="card-body">
+                        <div class="service-icon text-warning">
+                            <i class="fas fa-landmark"></i>
+                        </div>
+                        <h5 class="card-title">🟡 {% trans "Government Services" %}</h5>
+                        <p class="card-text">{% trans "Get help with government forms, subsidies, exams, and online services." %}</p>
+                        <a href="#" class="btn btn-warning">{% trans "Coming Soon" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Shop -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card service-card h-100 text-center">
+                    <div class="card-body">
+                        <div class="service-icon text-purple">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <h5 class="card-title">🟣 {% trans "Digital File Shop" %}</h5>
+                        <p class="card-text">{% trans "Download templates, forms, and ready-made documents for your business." %}</p>
+                        <a href="#" class="btn btn-secondary">{% trans "Coming Soon" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typing Service -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card service-card h-100 text-center">
+                    <div class="card-body">
+                        <div class="service-icon text-info">
+                            <i class="fas fa-keyboard"></i>
+                        </div>
+                        <h5 class="card-title">🔵 {% trans "Typing Services" %}</h5>
+                        <p class="card-text">{% trans "Convert handwritten documents or voice files to digital text." %}</p>
+                        <a href="{% url 'typing_service:order_create' %}" class="btn btn-info">{% trans "Use Service" %}</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Support -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card service-card h-100 text-center">
+                    <div class="card-body">
+                        <div class="service-icon text-success">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h5 class="card-title">🔴 {% trans "Chat Support" %}</h5>
+                        <p class="card-text">{% trans "Get instant support via WhatsApp or Telegram bot." %}</p>
+                        <a href="#" class="btn btn-success">{% trans "Coming Soon" %}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">{% trans "Why Choose Smart Office?" %}</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                <h5>{% trans "24/7 Online Service" %}</h5>
+                <p>{% trans "Access our services anytime, anywhere through our online platform." %}</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-shield-alt fa-3x text-success mb-3"></i>
+                <h5>{% trans "Secure & Reliable" %}</h5>
+                <p>{% trans "Your files and information are protected with industry-standard security." %}</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="fas fa-headset fa-3x text-info mb-3"></i>
+                <h5>{% trans "Expert Support" %}</h5>
+                <p>{% trans "Get help from our experienced team for all your business needs." %}</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

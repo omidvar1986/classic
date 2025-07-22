@@ -1,0 +1,31 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Typing Order Submitted" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-lg mt-5">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-4x text-success mb-4"></i>
+                <h3 class="mb-3">{% trans "Thank you for your order!" %}</h3>
+                <p class="lead">{% trans "Your typing request has been received and is under review." %}</p>
+                <p>
+                    {% blocktrans with id=order.id %}
+                        Your order ID is <strong>#{{ id }}</strong>.
+                    {% endblocktrans %}
+                </p>
+                <div class="mt-4">
+                    <a href="{% url 'core:home' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-home me-1"></i>{% trans "Back to Home" %}
+                    </a>
+                    <a href="{% url 'typing_service:typing_order_detail' order.id %}" class="btn btn-success">
+                        <i class="fas fa-eye me-1"></i>{% trans "View Order Details" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

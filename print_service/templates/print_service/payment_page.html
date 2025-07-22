@@ -1,0 +1,129 @@
+{% extends 'print_service/base.html' %}
+
+{% block title %}پرداخت سفارش #{{ order.id }} - دفتر هوشمند{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        direction: rtl;
+        font-family: 'Tahoma', 'Arial', sans-serif;
+    }
+    .payment-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .bank-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        border-right: 4px solid #28a745;
+    }
+    .amount-display {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .copy-btn {
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        font-size: 0.8rem;
+    }
+    .copy-btn:hover {
+        background: #0056b3;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="payment-card">
+            <h3 class="text-center mb-4">
+                <i class="fas fa-credit-card me-2"></i>اطلاعات پرداخت
+            </h3>
+            <div class="text-center">
+                <div class="amount-display mb-3">{{ amount|floatformat:0 }} تومان</div>
+                <p class="mb-0">سفارش #{{ order.id }} - {{ order.name }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-university me-2"></i>اطلاعات حساب بانکی
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="bank-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>نام بانک:</strong> {{ bank_info.bank_name }}</p>
+                            <p><strong>شماره حساب:</strong> 
+                                <span id="account-number">{{ bank_info.account_number }}</span>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('account-number')">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>صاحب حساب:</strong> {{ bank_info.account_holder }}</p>
+                            <p><strong>شماره کارت:</strong> 
+                                <span id="card-number">{{ bank_info.card_number }}</span>
+                                <button class="copy-btn ms-2" onclick="copyToClipboard('card-number')">
+                                    <i class="fas fa-copy"></i> کپی
+                                </button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <h6><i class="fas fa-info-circle me-2"></i>راهنمای پرداخت:</h6>
+                    <ol class="mb-0">
+                        <li>مبلغ {{ amount|floatformat:0 }} تومان را به حساب بالا واریز کنید</li>
+                        <li>فیش پرداخت را ذخیره کنید</li>
+                        <li>روی دکمه "آپلود فیش پرداخت" کلیک کنید</li>
+                        <li>فیش را آپلود کنید و منتظر تایید بمانید</li>
+                    </ol>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{% url 'print_service:payment_upload' order.id %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-upload me-2"></i>آپلود فیش پرداخت
+                    </a>
+                    <a href="{% url 'print_service:order_detail' order.id %}" class="btn btn-outline-secondary btn-lg ms-2">
+                        <i class="fas fa-arrow-right me-2"></i>بازگشت به سفارش
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const btn = event.target.closest('.copy-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> کپی شد';
+        btn.style.background = '#28a745';
+        
+        setTimeout(function() {
+            btn.innerHTML = originalText;
+            btn.style.background = '#007bff';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %} 

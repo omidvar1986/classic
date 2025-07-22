@@ -1,0 +1,66 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Typing Orders - Admin Dashboard" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="fas fa-list-alt me-2"></i>{% trans "Typing Orders Dashboard" %}</h3>
+        <form method="get" class="d-flex">
+            <input type="text" name="q" class="form-control me-2" placeholder="Search by name or email..." value="{{ query }}">
+            <button class="btn btn-outline-primary" type="submit">{% trans "Search" %}</button>
+        </form>
+    </div>
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-primary text-center">
+                    <tr>
+                        <th>ID</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Email" %}</th>
+                        <th>{% trans "Page Count" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Payment Slip" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr class="text-center">
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user_name }}</td>
+                        <td>{{ order.user_email }}</td>
+                        <td>{{ order.page_count }}</td>
+                        <td>
+                            {% if order.payment_slip %}
+                                <span class="badge bg-warning">{% trans "Awaiting Review" %}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{% trans "Pending Payment" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if order.payment_slip %}
+                                <a href="{{ order.payment_slip.url }}" target="_blank" class="btn btn-sm btn-info">{% trans "View Slip" %}</a>
+                            {% else %}
+                                <span class="text-muted">{% trans "Not Uploaded" %}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'typing_service:typing_order_detail' order.id %}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> {% trans "Details" %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center">{% trans "No typing orders found." %}</div>
+    {% endif %}
+</div>
+{% endblock %}

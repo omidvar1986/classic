@@ -1,0 +1,10 @@
+{% comment %} نمایش وضعیت سفارش به صورت رنگی {% endcomment %}
+{% if status == 'approved' or status == 'accepted' %}
+    <span class="badge bg-success">تأیید شده</span>
+{% elif status == 'rejected' %}
+    <span class="badge bg-danger">رد شده</span>
+{% elif status == 'pending' %}
+    <span class="badge bg-warning text-dark">در انتظار</span>
+{% else %}
+    <span class="badge bg-secondary">نامشخص</span>
+{% endif %}

@@ -1,0 +1,155 @@
+{% extends 'print_service/base.html' %}
+
+
+{% block title %}Order #{{ order.id }} - Smart Office{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Order #{{ order.id }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Order Status -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Order Status</h5>
+                            {% if order.status == 'pending' %}
+                                <span class="badge bg-warning status-badge">Pending</span>
+                            {% elif order.status == 'processing' %}
+                                <span class="badge bg-info status-badge">Processing</span>
+                            {% elif order.status == 'ready' %}
+                                <span class="badge bg-success status-badge">Ready</span>
+                            {% elif order.status == 'completed' %}
+                                <span class="badge bg-primary status-badge">Completed</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge bg-danger status-badge">Cancelled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Customer Information</h5>
+                        <p><strong>Name:</strong> {{ order.name }}</p>
+                        {% if order.email %}
+                            <p><strong>Email:</strong> {{ order.email }}</p>
+                        {% endif %}
+                        {% if order.phone %}
+                            <p><strong>Phone:</strong> {{ order.phone }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Order Details</h5>
+                        <p><strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                        <p><strong>Last Updated:</strong> {{ order.updated_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+
+                <!-- Print Options -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Print Options</h5>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <p><strong>Color Mode:</strong><br>{{ order.get_color_mode_display }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <p><strong>Print Sides:</strong><br>{{ order.get_side_type_display }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <p><strong>Paper Size:</strong><br>{{ order.get_paper_size_display }}</p>
+                            </div>
+                            <div class="col-md-3">
+                                <p><strong>Copies:</strong><br>{{ order.num_copies }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Information -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Delivery Information</h5>
+                        <p><strong>Method:</strong> {{ order.get_delivery_method_display }}</p>
+                        {% if order.address %}
+                            <p><strong>Address:</strong><br>{{ order.address|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Payment Information</h5>
+                        <p><strong>Method:</strong> {{ order.get_payment_method_display }}</p>
+                        <p><strong>Status:</strong> 
+                            {% if order.is_paid %}
+                                <span class="badge bg-success">پرداخت شده</span>
+                            {% elif order.payment.is_verified %}
+                                <span class="badge bg-info">تایید شده</span>
+                            {% elif order.payment.payment_screenshot %}
+                                <span class="badge bg-warning">در انتظار بررسی</span>
+                            {% else %}
+                                <span class="badge bg-secondary">پرداخت نشده</span>
+                            {% endif %}
+                        </p>
+                        {% if not order.is_paid and order.payment_method == 'online' %}
+                            <a href="{% url 'print_service:payment_page' order.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-credit-card me-1"></i>پرداخت
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Uploaded Files -->
+                {% if files %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5>Uploaded Files</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>File Name</th>
+                                        <th>Uploaded</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for file in files %}
+                                    <tr>
+                                        <td>{{ file.file.name|slice:"15:" }}</td>
+                                        <td>{{ file.uploaded_at|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            <a href="{{ file.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <a href="{% url 'print_service:order_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create New Order
+                        </a>
+                        <a href="{% url 'print_service:order_track' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-search me-2"></i>Track Another Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

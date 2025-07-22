@@ -1,0 +1,51 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Typing Orders" %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h2 class="mb-4 text-center">{% trans "Typing Orders" %}</h2>
+
+    <form method="get" class="mb-4 text-center">
+        <input type="text" name="q" value="{{ query }}" class="form-control w-50 d-inline" placeholder="{% trans 'Search by name, email or ID' %}">
+        <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
+    </form>
+
+    {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>{% trans "ID" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "Email" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Created At" %}</th>
+                        <th>{% trans "Total Price" %}</th>
+                        <th>{% trans "Actions" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.user_name }}</td>
+                            <td>{{ order.user_email }}</td>
+                            <td>{{ order.get_status_display }}</td>
+                            <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ order.total_price }} تومان</td>
+                            <td>
+                                <a href="{% url 'typing_service:order_detail' order.id %}" class="btn btn-sm btn-outline-info">{% trans "Details" %}</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-warning text-center">
+            {% trans "No typing orders found." %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

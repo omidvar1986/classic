@@ -1,0 +1,39 @@
+{% load i18n %}
+<div class="card border-warning">
+    <div class="card-header bg-warning">
+        <h5><i class="fas fa-file-invoice-dollar me-2"></i>{% trans "Action Required: Payment" %}</h5>
+    </div>
+    <div class="card-body">
+        <p>{% trans "Our team has reviewed your document. The total price is:" %}</p>
+        <h3 class="text-center my-3">{{ order.total_price }} {% trans "Toman" %}</h3>
+        
+        <hr>
+
+        <h5 class="mt-4">{% trans "Bank Account Details" %}</h5>
+        {% if bank_info %}
+            <ul class="list-group mb-4">
+                <li class="list-group-item"><strong>{% trans "Bank Name:" %}</strong> {{ bank_info.bank_name }}</li>
+                <li class="list-group-item"><strong>{% trans "Account Number:" %}</strong> {{ bank_info.account_number }}</li>
+                <li class="list-group-item"><strong>{% trans "Card Number:" %}</strong> {{ bank_info.card_number }}</li>
+                <li class="list-group-item"><strong>{% trans "Shaba Number:" %}</strong> {{ bank_info.shaba_number }}</li>
+            </ul>
+        {% else %}
+            <div class="alert alert-danger">{% trans "Bank details are not configured. Please contact support." %}</div>
+        {% endif %}
+
+        <p>{% trans "Please upload your payment slip to proceed." %}</p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="order_id_hidden" value="{{ order.id }}">
+            <div class="input-group">
+                {{ payment_form.payment_slip }}
+                <button type="submit" name="upload_slip" class="btn btn-success">
+                    <i class="fas fa-upload me-2"></i>{% trans "Upload Slip" %}
+                </button>
+            </div>
+            {% if payment_form.payment_slip.errors %}
+                <div class="text-danger mt-2">{{ payment_form.payment_slip.errors.as_text }}</div>
+            {% endif %}
+        </form>
+    </div>
+</div> 

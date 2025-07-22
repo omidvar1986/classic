@@ -1,0 +1,121 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+{% load dashboard_filters %}
+
+{% include 'admin_dashboard/partials/status_label.html' with status=order.status %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- فیلتر وضعیت و جستجو -->
+    <form method="get" class="row mb-4 g-2 align-items-center">
+        <div class="col-auto">
+            <select name="status" class="form-select">
+                <option value="" {% if active_filter == 'all' %}selected{% endif %}>تمام وضعیت‌ها</option>
+                <option value="pending" {% if active_filter == 'pending' %}selected{% endif %}>در انتظار</option>
+                <option value="approved" {% if active_filter == 'approved' %}selected{% endif %}>تأیید شده</option>
+                <option value="rejected" {% if active_filter == 'rejected' %}selected{% endif %}>رد شده</option>
+                <option value="accepted" {% if active_filter == 'accepted' %}selected{% endif %}>پذیرفته شده</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="text" name="q" class="form-control" placeholder="جستجو..." value="{{ query }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">فیلتر</button>
+        </div>
+        <div class="col-auto ms-auto">
+            <a href="{% url 'admin_dashboard:settings' %}" class="btn btn-secondary">
+                <i class="fas fa-cogs me-1"></i> {% trans "Manage Settings" %}
+            </a>
+        </div>
+    </form>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'all' %}active{% endif %}" href="?tab=all">تمام سفارش‌ها</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'print' %}active{% endif %}" href="?tab=print">سفارش‌های پرینت</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if active_tab == 'typing' %}active{% endif %}" href="?tab=typing">سفارش‌های تایپ</a>
+        </li>
+    </ul>
+
+    {% if orders %}
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>نوع</th>
+                    <th>کاربر</th>
+                    <th>تاریخ</th>
+                    <th>رسید</th>
+                    <th>وضعیت</th>
+                    <th>اقدامات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                {% with order|get_order_type as service_type %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ service_type|title }}</td>
+                    <td>
+                        {% if service_type == 'print' %}
+                            {{ order.name }}<br><small>{{ order.email }}</small>
+                        {% else %}
+                            {{ order.user_name }}<br><small>{{ order.user_email }}</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if order.payment_slip %}
+                            <a href="{{ order.payment_slip.url }}" target="_blank">
+                                <img src="{{ order.payment_slip.url }}" alt="Slip" style="max-width: 90px; border-radius: 6px;">
+                            </a>
+                        {% else %}
+                            <span class="text-muted">ندارد</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% include 'admin_dashboard/partials/status_label.html' with status=order.status %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{% url 'admin_dashboard:approve_payment' service_type order.id %}" class="btn btn-success btn-sm" title="تأیید">
+                                <i class="fas fa-check"></i>
+                            </a>
+                            <a href="{% url 'admin_dashboard:reject_payment' service_type order.id %}" class="btn btn-danger btn-sm" title="رد">
+                                <i class="fas fa-times"></i>
+                            </a>
+                            <a href="{% url 'admin_dashboard:review_payment' service_type order.id %}" class="btn btn-outline-primary btn-sm" title="بررسی">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'admin_dashboard:delete_order' service_type order.id %}" class="btn btn-outline-secondary btn-sm" title="حذف"
+                               onclick="return confirm('آیا مطمئن هستید؟');">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% if service_type == 'typing' and not order.final_approved %}
+                                <a href="{% url 'admin_dashboard:finalize_order' order.id %}" class="btn btn-info btn-sm" title="تایید نهایی">
+                                    <i class="fas fa-check-double"></i> تایید نهایی
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        هیچ سفارشی یافت نشد.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Create Print Order - Smart Office" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-print me-2"></i>{% trans "Create New Print Order" %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Customer Info -->
+                    <h5 class="mb-3">{% trans "Customer Information" %}</h5>
+                    <div class="mb-3">
+                        {{ order_form.name.label_tag }}
+                        {{ order_form.name }}
+                        {{ order_form.name.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ order_form.email.label_tag }}
+                        {{ order_form.email }}
+                        {{ order_form.email.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ order_form.phone.label_tag }}
+                        {{ order_form.phone }}
+                        {{ order_form.phone.errors }}
+                    </div>
+
+                    <!-- Print Options -->
+                    <h5 class="mt-4 mb-3">{% trans "Print Options" %}</h5>
+                    <div class="mb-3">
+                        {{ order_form.color_mode.label_tag }}
+                        {{ order_form.color_mode }}
+                        {{ order_form.color_mode.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ order_form.side_type.label_tag }}
+                        {{ order_form.side_type }}
+                        {{ order_form.side_type.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ order_form.paper_size.label_tag }}
+                        {{ order_form.paper_size }}
+                        {{ order_form.paper_size.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ order_form.num_copies.label_tag }}
+                        {{ order_form.num_copies }}
+                        {{ order_form.num_copies.errors }}
+                    </div>
+
+                    <!-- File Upload -->
+                    <h5 class="mt-4 mb-3">{% trans "Upload File" %}</h5>
+                    <div class="mb-3">
+                        {{ file_form.file.label_tag }}
+                        {{ file_form.file }}
+                        {{ file_form.file.errors }}
+                    </div>
+
+                    <!-- Delivery -->
+                    <h5 class="mt-4 mb-3">{% trans "Delivery Method" %}</h5>
+                    <div class="mb-3">
+                        {{ order_form.delivery_method.label_tag }}
+                        {{ order_form.delivery_method }}
+                        {{ order_form.delivery_method.errors }}
+                    </div>
+                    <div class="mb-3" id="address-field" style="display: none;">
+                        {{ order_form.address.label_tag }}
+                        {{ order_form.address }}
+                        {{ order_form.address.errors }}
+                    </div>
+
+                    <!-- Payment -->
+                    <h5 class="mt-4 mb-3">{% trans "Payment Method" %}</h5>
+                    <div class="mb-3">
+                        {{ order_form.payment_method.label_tag }}
+                        {{ order_form.payment_method }}
+                        {{ order_form.payment_method.errors }}
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-check me-2"></i>{% trans "Create Order" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deliveryMethod = document.getElementById('{{ order_form.delivery_method.id_for_label }}');
+    const addressField = document.getElementById('address-field');
+
+    function toggleAddress() {
+        if (deliveryMethod && deliveryMethod.value === 'delivery') {
+            addressField.style.display = 'block';
+        } else {
+            addressField.style.display = 'none';
+        }
+    }
+
+    if (deliveryMethod) {
+        deliveryMethod.addEventListener('change', toggleAddress);
+        toggleAddress();
+    }
+});
+</script>
+{% endblock %}

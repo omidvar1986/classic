@@ -1,0 +1,82 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Review Typing Order" %}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="text-center mb-4">{% trans "Review Order" %} #{{ order.id }}</h2>
+    <div class="row g-4">
+        <!-- Document Preview -->
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>{% trans "Document Preview" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.document_file %}
+                        <iframe src="{{ order.document_file.url }}" width="100%" height="600px"></iframe>
+                        <div class="mt-2 text-center">
+                            <a href="{{ order.document_file.url }}" target="_blank" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i> {% trans "Open in New Tab" %}
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">{% trans "No document was uploaded for this order." %}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing and Confirmation -->
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5><i class="fas fa-calculator me-2"></i>{% trans "Set Price and Confirm" %}</h5>
+                </div>
+                <div class="card-body">
+                    {% if pricing_settings %}
+                        <form method="post" id="pricing-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="page_count_input" class="form-label">{% trans "Number of Pages" %}:</label>
+                                <input type="number" id="page_count_input" name="page_count" class="form-control" value="{{ order.page_count|default:1 }}">
+                            </div>
+                            <div class="mb-3">
+                                <p>{% trans "Price per page:" %} <strong id="price-per-page">{{ pricing_settings.price_per_page }}</strong> {% trans "Toman" %}</p>
+                            </div>
+                            <hr>
+                            <h4 class="text-center">{% trans "Total Price:" %} <span id="total-price" class="text-success fw-bold">0</span> {% trans "Toman" %}</h4>
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">{% trans "Confirm Price & Notify User" %}</button>
+                            </div>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <p>{% trans "Pricing settings are not configured." %}</p>
+                            <a href="{% url 'admin:typing_service_typingpricesettings_add' %}" class="btn btn-primary">{% trans "Configure Pricing Now" %}</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pageCountInput = document.getElementById('page_count_input');
+    const pricePerPage = parseFloat(document.getElementById('price-per-page').innerText);
+    const totalPriceElement = document.getElementById('total-price');
+
+    function calculateTotal() {
+        const pageCount = parseInt(pageCountInput.value) || 0;
+        const total = pageCount * pricePerPage;
+        totalPriceElement.innerText = total.toLocaleString();
+    }
+
+    pageCountInput.addEventListener('input', calculateTotal);
+    calculateTotal(); // Initial calculation
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,143 @@
+{% extends 'print_service/base.html' %}
+
+
+{% block title %}All Orders - Smart Office{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>All Orders
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Print Options</th>
+                                <th>Delivery</th>
+                                <th>Payment</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in page_obj %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>
+                                    <div>{{ order.name }}</div>
+                                    {% if order.email %}
+                                        <small class="text-muted">{{ order.email }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="badge bg-info">Processing</span>
+                                    {% elif order.status == 'ready' %}
+                                        <span class="badge bg-success">Ready</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-primary">Completed</span>
+                                    {% elif order.status == 'cancelled' %}
+                                        <span class="badge bg-danger">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>
+                                        {{ order.get_color_mode_display }}<br>
+                                        {{ order.get_side_type_display }}<br>
+                                        {{ order.get_paper_size_display }} ({{ order.num_copies }} copies)
+                                    </small>
+                                </td>
+                                <td>
+                                    <small>{{ order.get_delivery_method_display }}</small>
+                                </td>
+                                <td>
+                                    {% if order.is_paid %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ order.created_at|date:"M d, Y" }}</small><br>
+                                    <small class="text-muted">{{ order.created_at|date:"H:i" }}</small>
+                                </td>
+                                <td>
+                                    <a href="{% url 'print_service:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="{% trans 'Order pagination' %}">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                <div class="text-center mt-3">
+                    <p class="text-muted">
+                        {% blocktrans with start=page_obj.start_index end=page_obj.end_index total=page_obj.paginator.count %}Showing {{ start }} to {{ end }} of {{ total }} orders{% endblocktrans %}
+                    </p>
+                </div>
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5>No orders found</h5>
+                    <p class="text-muted">There are no orders in the system yet.</p>
+                    <a href="{% url 'print_service:order_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Order
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

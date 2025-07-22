@@ -1,0 +1,24 @@
+{% load i18n %}
+<div class="progress-bar-container {% if order.status == 'rejected' %}rejected{% endif %}">
+    {% for step in progress_steps %}
+        <div class="progress-step {% if forloop.counter0 == current_step_index %}active{% endif %} {% if forloop.counter0 < current_step_index %}completed{% endif %}">
+            <div class="step-circle">
+                {% if order.status == 'rejected' %}
+                    <i class="fas fa-times"></i>
+                {% elif forloop.counter0 < current_step_index %}
+                    <i class="fas fa-check"></i>
+                {% elif forloop.counter0 == current_step_index %}
+                    <i class="fas fa-pencil-alt"></i>
+                {% endif %}
+            </div>
+            <p class="mt-2">
+                {% if step == 'pending_review' %}{% trans "Review" %}{% endif %}
+                {% if step == 'awaiting_payment' %}{% trans "Payment" %}{% endif %}
+                {% if step == 'awaiting_approval' %}{% trans "Approval" %}{% endif %}
+                {% if step == 'in_progress' %}{% trans "Typing" %}{% endif %}
+                {% if step == 'awaiting_final_approval' %}{% trans "Final Approval" %}{% endif %}
+                {% if step == 'completed' %}{% trans "Done" %}{% endif %}
+            </p>
+        </div>
+    {% endfor %}
+</div> 

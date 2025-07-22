@@ -1,0 +1,21 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+{% block title %}Finalize Order{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h3>{% trans "Finalize Order" %} #{{ order.id }}</h3>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">
+            <i class="fas fa-check"></i> {% trans "Confirm Finalization" %}
+        </button>
+    </form>
+    {% if order.final_approved %}
+        <div class="alert alert-success mt-3">
+            <i class="fas fa-check-circle"></i> {% trans "This order has been finalized." %}<br>
+            <strong>{% trans "Final Note:" %}</strong> {{ order.final_note }}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -1,0 +1,33 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Typing Order Payment" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i> {% trans "Pay for Typing Order" %}
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <h5 class="mb-3">{% trans "Please transfer the amount to the following account" %}</h5>
+                    <p><strong>{% trans "Card Number" %}:</strong> <span class="fs-5">{{ bank_info.card_number }}</span></p>
+                    <p><strong>{% trans "Account Number" %}:</strong> <span class="fs-5">{{ bank_info.account_number }}</span></p>
+                    <p><strong>{% trans "Account Holder" %}:</strong> <span class="fs-5">{{ bank_info.account_holder }}</span></p>
+                    <p><strong>{% trans "Amount to Pay" %}:</strong> <span class="fs-5">{{ order.total_price }} Toman</span></p>
+
+                    <hr class="my-4">
+
+                    <a href="{% url 'typing_service:typing_payment_upload' order.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-upload me-2"></i>{% trans "Upload Payment Slip" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
