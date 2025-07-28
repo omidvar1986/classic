@@ -9,18 +9,24 @@ urlpatterns = [
     path('track/', views.order_track, name='order_track'),
     path('orders/', views.order_list, name='order_list'),
     path('order/<int:order_id>/', views.order_detail, name='order_detail'),
+    path('order/summary/', views.order_summary, name='order_summary'),
+    path('order/<int:order_id>/submitted/', views.order_submitted, name='order_submitted'),
+    path('debug-orders/', views.order_debug_list, name='order_debug_list'),
+    path('track-order/', views.unified_order_track, name='unified_order_track'),
 
     # Payment URLs
     path('payment/<int:order_id>/', views.payment_page, name='payment_page'),
-    path('order/<int:order_id>/payment-upload/', views.payment_slip_upload, name='payment_slip_upload'),
 
     # API (for admin panel)
     # path('api/order/<int:order_id>/status/', views.update_order_status, name='update_status'),
 
     # Staff dashboard + actions
-    # path('admin-dashboard/', views.staff_dashboard, name='staff_dashboard'),
-    # path('admin-dashboard/approve/<int:order_id>/', views.approve_payment, name='approve_payment'),
-    # path('admin-dashboard/reject/<int:order_id>/', views.reject_payment, name='reject_payment'),
-    # path('admin-dashboard/review/<int:order_id>/', views.review_payment, name='review_payment'),
+    path('admin-dashboard/', views.staff_dashboard, name='staff_dashboard'),
+    path('admin-dashboard/approve/<int:order_id>/', views.approve_payment, name='approve_payment'),
+    path('admin-dashboard/reject/<int:order_id>/', views.reject_payment, name='reject_payment'),
+    path('admin-dashboard/mark-printing/<int:order_id>/', views.mark_printing, name='mark_printing'),
+    path('admin-dashboard/mark-ready/<int:order_id>/', views.mark_ready, name='mark_ready'),
+    path('admin-dashboard/mark-completed/<int:order_id>/', views.mark_completed, name='mark_completed'),
+    path('admin-dashboard/bank-settings/', views.bank_settings_view, name='bank_settings'),
     # path('admin-settings/', views.staff_settings, name='staff_settings'),
 ]

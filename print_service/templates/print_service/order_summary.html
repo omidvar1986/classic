@@ -1,0 +1,51 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Order Summary - Smart Office" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-list-alt me-2"></i>{% trans "Order Summary" %}</h4>
+            </div>
+            <div class="card-body">
+                <h5>{% trans "Please review your order details before confirming:" %}</h5>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>{% trans "Name:" %}</strong> {{ order_data.name }}</li>
+                    <li class="list-group-item"><strong>{% trans "Email:" %}</strong> {{ order_data.email }}</li>
+                    <li class="list-group-item"><strong>{% trans "Phone:" %}</strong> {{ order_data.phone }}</li>
+                    <li class="list-group-item"><strong>{% trans "Color Mode:" %}</strong> {{ order_data.color_mode }}</li>
+                    <li class="list-group-item"><strong>{% trans "Side Type:" %}</strong> {{ order_data.side_type }}</li>
+                    <li class="list-group-item"><strong>{% trans "Paper Size:" %}</strong> {{ order_data.paper_size }}</li>
+                    <li class="list-group-item"><strong>{% trans "Number of Copies:" %}</strong> {{ order_data.num_copies }}</li>
+                    <li class="list-group-item"><strong>{% trans "Delivery Method:" %}</strong> {{ order_data.delivery_method }}</li>
+                    {% if order_data.delivery_method == 'delivery' %}
+                    <li class="list-group-item"><strong>{% trans "Address:" %}</strong> {{ order_data.address }}</li>
+                    {% endif %}
+                    <li class="list-group-item"><strong>{% trans "Payment Method:" %}</strong> {{ order_data.payment_method }}</li>
+                    <li class="list-group-item"><strong>{% trans "Files:" %}</strong>
+                        <ul>
+                        {% for fname in file_names %}
+                            <li>{{ fname }}</li>
+                        {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'print_service:order_create' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Edit Order" %}
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>{% trans "Confirm and Submit" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

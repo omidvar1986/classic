@@ -1,0 +1,41 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Order Submitted - Smart Office" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="fas fa-check-circle me-2"></i>{% trans "Order Submitted Successfully!" %}</h4>
+            </div>
+            <div class="card-body">
+                <h5>{% trans "Thank you for your order." %}</h5>
+                <p>{% trans "Your order has been received and is being processed." %}</p>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item"><strong>{% trans "Order ID:" %}</strong> #{{ order.id }}</li>
+                    <li class="list-group-item"><strong>{% trans "Name:" %}</strong> {{ order.name }}</li>
+                    <li class="list-group-item"><strong>{% trans "Status:" %}</strong> {{ order.get_status_display }}</li>
+                </ul>
+                <div class="alert alert-info">
+                    {% if order.payment_method == 'online' %}
+                        {% trans "Please proceed to payment and upload your payment slip." %}
+                        <a href="{% url 'print_service:payment_slip_upload' order.id %}" class="btn btn-primary btn-sm ms-2">{% trans "Go to Payment" %}</a>
+                    {% else %}
+                        {% trans "You can track your order status using your order ID or email." %}
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'print_service:order_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>{% trans "Create Another Order" %}
+                    </a>
+                    <a href="{% url 'print_service:order_track' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-search me-2"></i>{% trans "Track Order" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

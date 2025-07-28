@@ -1,0 +1,86 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+{% block title %}Print Service Admin Dashboard{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="fas fa-tools me-2"></i>Print Service Admin Dashboard</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" class="mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label for="status" class="form-label">{% trans "Filter by Status" %}</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">{% trans "All" %}</option>
+                            {% for key, label in orders.model.STATUS_CHOICES %}
+                                <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-auto">
+                        <button type="submit" class="btn btn-primary">{% trans "Filter" %}</button>
+                    </div>
+                </div>
+            </form>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Payment Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.name }}</td>
+                        <td>{{ order.email }}</td>
+                        <td>{{ order.get_status_display }}</td>
+                        <td>{{ order.get_payment_status_display }}</td>
+                        <td>{{ order.created_at }}</td>
+                        <td>
+                            <a href="{% url 'print_service:order_detail' order.id %}" class="btn btn-sm btn-info">{% trans "View" %}</a>
+                            {% if order.payment_status == 'pending' and order.status == 'awaiting_approval' %}
+                                <form method="post" action="{% url 'print_service:approve_payment' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">{% trans "Approve Payment" %}</button>
+                                </form>
+                                <form method="post" action="{% url 'print_service:reject_payment' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger">{% trans "Reject Payment" %}</button>
+                                </form>
+                            {% endif %}
+                            {% if order.status == 'awaiting_approval' %}
+                                <form method="post" action="{% url 'print_service:mark_printing' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-primary">{% trans "Mark as Printing" %}</button>
+                                </form>
+                            {% elif order.status == 'processing' %}
+                                <form method="post" action="{% url 'print_service:mark_ready' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">{% trans "Mark as Ready" %}</button>
+                                </form>
+                            {% elif order.status == 'ready' %}
+                                <form method="post" action="{% url 'print_service:mark_completed' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">{% trans "Mark as Completed" %}</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7">No orders found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

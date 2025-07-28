@@ -12,3 +12,47 @@
     border-color: #28a745;
     background-color: #e9f7ef;
 }
+
+/* Progress Bar Styles for Order Tracking */
+.progress-bar-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+.progress-step {
+    text-align: center;
+    flex: 1;
+    position: relative;
+}
+.progress-step .step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    border: 3px solid #dee2e6;
+    display: inline-block;
+    line-height: 24px;
+    color: #495057;
+}
+.progress-step.active .step-circle {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+.progress-step.completed .step-circle {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+.progress-step::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #e9ecef;
+    z-index: -1;
+}
+.progress-step:last-child::after {
+    display: none;
+}

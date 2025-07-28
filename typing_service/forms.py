@@ -42,23 +42,6 @@ class TypingOrderStatusForm(forms.ModelForm):
         }
 
 
-class PaymentSlipForm(forms.ModelForm):
-    """Form for users to upload their payment slip."""
-    class Meta:
-        model = TypingOrder
-        fields = ['payment_slip']
-        widgets = {
-            'payment_slip': forms.ClearableFileInput(attrs={'class': 'form-control', 'required': True}),
-        }
-
-    def clean_payment_slip(self):
-        slip = self.cleaned_data.get('payment_slip')
-        if not slip:
-            raise forms.ValidationError(_("This field is required."))
-        # Add any other validation like file size or type if needed
-        return slip
-
-
 class TypingPriceSettingsForm(forms.ModelForm):
     """Form for admin to update the price per page for typing services."""
     class Meta:

@@ -11,9 +11,30 @@
                 <h4 class="mb-0"><i class="fas fa-print me-2"></i>{% trans "Create New Print Order" %}</h4>
             </div>
             <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+                {% if form.errors or file_form.errors %}
+                <div class="alert alert-danger">
+                    <ul class="mb-0">
+                        {% for field in order_form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in order_form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        {% for field in file_form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in file_form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <form method="post" enctype="multipart/form-data" id="orderForm">
                     {% csrf_token %}
-
                     <!-- Customer Info -->
                     <h5 class="mb-3">{% trans "Customer Information" %}</h5>
                     <div class="mb-3">
@@ -31,7 +52,6 @@
                         {{ order_form.phone }}
                         {{ order_form.phone.errors }}
                     </div>
-
                     <!-- Print Options -->
                     <h5 class="mt-4 mb-3">{% trans "Print Options" %}</h5>
                     <div class="mb-3">
@@ -54,15 +74,14 @@
                         {{ order_form.num_copies }}
                         {{ order_form.num_copies.errors }}
                     </div>
-
                     <!-- File Upload -->
                     <h5 class="mt-4 mb-3">{% trans "Upload File" %}</h5>
                     <div class="mb-3">
                         {{ file_form.file.label_tag }}
                         {{ file_form.file }}
                         {{ file_form.file.errors }}
+                        <small class="form-text text-muted">{% trans "Allowed formats: PDF, JPG, PNG, DOC, DOCX. Max size: 10MB." %}</small>
                     </div>
-
                     <!-- Delivery -->
                     <h5 class="mt-4 mb-3">{% trans "Delivery Method" %}</h5>
                     <div class="mb-3">
@@ -75,7 +94,6 @@
                         {{ order_form.address }}
                         {{ order_form.address.errors }}
                     </div>
-
                     <!-- Payment -->
                     <h5 class="mt-4 mb-3">{% trans "Payment Method" %}</h5>
                     <div class="mb-3">
@@ -83,9 +101,9 @@
                         {{ order_form.payment_method }}
                         {{ order_form.payment_method.errors }}
                     </div>
-
                     <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             <i class="fas fa-check me-2"></i>{% trans "Create Order" %}
                         </button>
                     </div>
@@ -101,7 +119,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const deliveryMethod = document.getElementById('{{ order_form.delivery_method.id_for_label }}');
     const addressField = document.getElementById('address-field');
-
     function toggleAddress() {
         if (deliveryMethod && deliveryMethod.value === 'delivery') {
             addressField.style.display = 'block';
@@ -109,10 +126,36 @@ document.addEventListener('DOMContentLoaded', function () {
             addressField.style.display = 'none';
         }
     }
-
     if (deliveryMethod) {
         deliveryMethod.addEventListener('change', toggleAddress);
         toggleAddress();
+    }
+    // Spinner on submit
+    const form = document.getElementById('orderForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Client-side file validation
+            const fileInput = form.querySelector('input[type="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                if (!allowed.includes(ext)) {
+                    alert('Unsupported file format!');
+                    e.preventDefault();
+                    return false;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be under 10MB!');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
     }
 });
 </script>

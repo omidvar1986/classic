@@ -32,10 +32,13 @@ class PrintOrder(models.Model):
 
     # Order status
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('processing', 'Processing'),
+        ('pending', 'Pending Review'),
+        ('awaiting_payment', 'Awaiting Payment'),
+        ('awaiting_approval', 'Awaiting Approval'),
+        ('processing', 'In Progress'),
         ('ready', 'Ready for Pickup/Delivery'),
         ('completed', 'Completed'),
+        ('rejected', 'Rejected'),
         ('cancelled', 'Cancelled'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')

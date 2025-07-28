@@ -5,7 +5,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
 from .models import TypingOrder
-from .forms import TypingOrderForm, PaymentSlipForm
+from .forms import TypingOrderForm
 from print_service.models import PaymentSettings # Import settings
 
 
@@ -69,45 +69,24 @@ def track_order_view(request):
             error = _("No order found with the provided details.")
 
     # --- Define progress steps for the template ---
-    steps = [
+    progress_steps = [
         'pending_review',
         'awaiting_payment',
         'awaiting_approval',
         'in_progress',
         'awaiting_final_approval',
-        'completed'
+        'completed',
     ]
-    current_step_index = -1
-    if order and order.status in steps:
-        current_step_index = steps.index(order.status)
+    current_step_index = 0
+    if order and order.status in progress_steps:
+        current_step_index = progress_steps.index(order.status)
 
     # --- Define progress steps and bank info for the template ---
     bank_info = PaymentSettings.objects.first() # Get bank details
-    steps = [
-        'pending_review',
-        'awaiting_payment',
-        'awaiting_approval',
-        'in_progress',
-        'awaiting_final_approval',
-        'completed'
-    ]
-    current_step_index = -1
-    if order and order.status in steps:
-        current_step_index = steps.index(order.status)
 
-    # --- Handle POST requests for payment slip upload and final approval ---
+    # --- Handle POST requests for final approval ---
     if request.method == 'POST' and order:
-        # Handle payment slip upload
-        if 'upload_slip' in request.POST:
-            payment_form = PaymentSlipForm(request.POST, request.FILES, instance=order)
-            if payment_form.is_valid():
-                order.status = 'awaiting_approval'
-                payment_form.save()
-                messages.success(request, _('Your payment slip has been uploaded and is awaiting approval.'))
-                return redirect(f"{request.path}?order_id={order.id}&email={order.user_email}")
-        
-        # Handle final user approval
-        elif 'final_user_approval' in request.POST:
+        if 'final_user_approval' in request.POST:
             order.final_approved_by_user = True
             order.delivery_option = request.POST.get('delivery_option')
             order.status = 'completed'
@@ -115,15 +94,10 @@ def track_order_view(request):
             messages.success(request, _('Thank you for your final approval. Your order is now complete.'))
             return redirect(f"{request.path}?order_id={order.id}&email={order.user_email}")
 
-    # --- Prepare context for the template ---
-    payment_form = PaymentSlipForm(instance=order) if order else PaymentSlipForm()
-    
     context = {
         'order': order,
         'error': error,
-        'payment_form': payment_form,
-        'query_params': {'order_id': order.id, 'email': order.user_email} if order else {},
-        'progress_steps': steps,
+        'progress_steps': progress_steps,
         'current_step_index': current_step_index,
         'bank_info': bank_info, # Add bank info to context
     }

@@ -8,6 +8,7 @@ from django.conf.urls.i18n import i18n_patterns
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('admin/', admin.site.urls),
+    path('paymentslip/', include('paymentslip.urls', namespace='paymentslip')),
 ]
 
 # URL patterns that SHOULD be translated

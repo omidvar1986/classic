@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'admin_dashboard',
     'user_portal',
     'core',
+    'paymentslip',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +82,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
+                'django.template.context_processors.csrf',
             ],
         },
     },

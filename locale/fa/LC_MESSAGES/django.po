@@ -92,6 +92,9 @@ msgstr "اسناد دست‌نویس یا فایل‌های صوتی را به �
 msgid "Chat Support"
 msgstr "پشتیبانی گفت‌وگو"
 
+msgid "Please save your Order ID and email. You will need them to track your order status, upload payment, and download your file."
+msgstr "لطفا شناسه سفارش و ایمیل خود را ذخیره کنید. برای پیگیری وضعیت سفارش، آپلود پرداخت و دانلود فایل به آنها نیاز خواهید داشت."
+
 #: core/templates/core/home.html:108
 msgid "Get instant support via WhatsApp or Telegram bot."
 msgstr "از طریق ربات تلگرام یا واتساپ پشتیبانی فوری دریافت کنید."
@@ -140,6 +143,9 @@ msgstr "پشتیبانی متخصص"
 
 msgid "Full Name"
 msgstr "نام کامل"
+
+msgid "Please proceed to payment and upload your payment slip."
+msgstr "لطفا به مرحله پرداخت بروید و رسید پرداخت خود را آپلود کنید."
 
 msgid "Price Estimation"
 msgstr "تخمین قیمت"

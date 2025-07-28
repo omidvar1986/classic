@@ -4,8 +4,7 @@
         <h5><i class="fas fa-file-invoice-dollar me-2"></i>{% trans "Action Required: Payment" %}</h5>
     </div>
     <div class="card-body">
-        <p>{% trans "Our team has reviewed your document. The total price is:" %}</p>
-        <h3 class="text-center my-3">{{ order.total_price }} {% trans "Toman" %}</h3>
+        <p>{% trans "Our team has reviewed your print order. The total price is set. Please pay and upload your payment slip." %}</p>
         <hr>
         <h5 class="mt-4">{% trans "Bank Account Details" %}</h5>
         <ul class="list-group mb-4">
@@ -15,7 +14,7 @@
             <li class="list-group-item"><strong>{% trans "Shaba Number:" %}</strong> IR123456789012345678901234</li>
         </ul>
         <div class="text-center my-3">
-            <a href="{% url 'paymentslip:upload' 'typing' order.id %}" class="btn btn-success btn-lg">
+            <a href="{% url 'paymentslip:upload' 'print' order.id %}" class="btn btn-success btn-lg">
                 <i class="fas fa-upload me-2"></i>{% trans "Upload Payment Slip" %}
             </a>
         </div>

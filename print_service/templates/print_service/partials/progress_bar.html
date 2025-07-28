@@ -1,0 +1,110 @@
+{% load i18n %}
+<style>
+    .modern-progress-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 2rem 0 1.5rem 0;
+        position: relative;
+    }
+    .modern-progress-step {
+        flex: 1;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    .modern-progress-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e9ecef;
+        border: 3px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        font-weight: bold;
+        font-size: 1.1rem;
+        transition: background 0.3s, border-color 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .modern-progress-step.completed .modern-progress-circle {
+        background: #28a745;
+        border-color: #28a745;
+        color: #fff;
+        animation: pop 0.4s;
+    }
+    .modern-progress-step.active .modern-progress-circle {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #fff;
+        animation: pulse 1s infinite alternate;
+    }
+    .modern-progress-label {
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        color: #495057;
+        font-weight: 500;
+    }
+    .modern-progress-bar::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 7%;
+        right: 7%;
+        height: 4px;
+        background: #dee2e6;
+        z-index: 0;
+        border-radius: 2px;
+    }
+    .modern-progress-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 4px;
+        background: #28a745;
+        z-index: 1;
+        border-radius: 2px;
+        transform: translateY(-50%);
+        transition: background 0.3s;
+        display: none;
+    }
+    .modern-progress-step.completed:not(:last-child)::after {
+        display: block;
+    }
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 #ffc10755; }
+        100% { box-shadow: 0 0 0 8px #ffc10722; }
+    }
+    @keyframes pop {
+        0% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+</style>
+<div class="modern-progress-bar">
+    {% for step in progress_steps %}
+        <div class="modern-progress-step {% if forloop.counter0 < current_step_index %}completed{% endif %} {% if forloop.counter0 == current_step_index %}active{% endif %}">
+            <div class="modern-progress-circle">
+                {% if forloop.counter0 < current_step_index %}
+                    ✓
+                {% elif forloop.counter0 == current_step_index %}
+                    {{ forloop.counter }}
+                {% else %}
+                    {{ forloop.counter }}
+                {% endif %}
+            </div>
+            <div class="modern-progress-label">
+                {% if step == 'pending' %}{% trans "Review" %}{% endif %}
+                {% if step == 'awaiting_payment' %}{% trans "Payment" %}{% endif %}
+                {% if step == 'awaiting_approval' %}{% trans "Approval" %}{% endif %}
+                {% if step == 'processing' %}{% trans "Printing" %}{% endif %}
+                {% if step == 'ready' %}{% trans "Ready" %}{% endif %}
+                {% if step == 'completed' %}{% trans "Done" %}{% endif %}
+                {% if step == 'rejected' %}{% trans "Rejected" %}{% endif %}
+                {% if step == 'cancelled' %}{% trans "Cancelled" %}{% endif %}
+            </div>
+        </div>
+    {% endfor %}
+</div> 
