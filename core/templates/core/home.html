@@ -30,9 +30,25 @@
     <div class="container text-center">
         <h1 class="display-4 mb-4">{% trans "Welcome to Smart Office" %}</h1>
         <p class="lead mb-4">{% trans "Your complete digital business solution for printing, government services, and more!" %}</p>
-        <a href="/print/" class="btn btn-light btn-lg">
-            <i class="fas fa-print me-2"></i>{% trans "Start Printing Now" %}
-        </a>
+        {% if user.is_authenticated %}
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-user me-2"></i>{% trans "My Dashboard" %}
+            </a>
+            <a href="/print/" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-print me-2"></i>{% trans "Start Printing Now" %}
+            </a>
+        </div>
+        {% else %}
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="{% url 'accounts:login' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>{% trans "Login" %}
+            </a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>{% trans "Register" %}
+            </a>
+        </div>
+        {% endif %}
     </div>
 </section>
 

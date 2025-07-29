@@ -72,6 +72,29 @@
                             <i class="fas fa-list me-1"></i>{% trans "All Orders" %}
                         </a>
                     </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}">
+                            <i class="fas fa-user me-1"></i>{% trans "My Dashboard" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:logout' %}">
+                            <i class="fas fa-sign-out-alt me-1"></i>{% trans "Logout" %}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>{% trans "Login" %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:register' %}">
+                            <i class="fas fa-user-plus me-1"></i>{% trans "Register" %}
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item d-flex align-items-center">
                         <form action="{% url 'set_language' %}" method="post" class="ms-3 lang-form">
                             {% csrf_token %}

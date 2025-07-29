@@ -1,0 +1,81 @@
+{% extends 'print_service/base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block extra_css %}
+<style>
+    .dashboard-card {
+        max-width: 900px;
+        margin: 2rem auto;
+        border-radius: 18px;
+        box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+        padding: 2.5rem 2rem 2rem 2rem;
+        background: #fff;
+    }
+    .order-table th, .order-table td { vertical-align: middle; }
+    .order-table { font-size: 0.98rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard-card">
+    <h3 class="mb-4">Welcome, {{ user.email }}!</h3>
+    <h5 class="mb-3">My Print Orders</h5>
+    {% if print_orders %}
+    <div class="table-responsive mb-4">
+        <table class="table table-bordered order-table">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Delivery</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in print_orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.get_status_display }}</td>
+                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ order.get_delivery_method_display }}</td>
+                    <td><a href="{% url 'print_service:order_detail' order.id %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No print orders yet.</p>
+    {% endif %}
+    <h5 class="mb-3 mt-4">My Typing Orders</h5>
+    {% if typing_orders %}
+    <div class="table-responsive">
+        <table class="table table-bordered order-table">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in typing_orders %}
+                <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.get_status_display }}</td>
+                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td><a href="{% url 'typing_service:track_order' %}?order_id={{ order.id }}&email={{ user.email }}" class="btn btn-sm btn-outline-primary">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-muted">No typing orders yet.</p>
+    {% endif %}
+    <div class="text-center mt-4">
+        <a href="{% url 'print_service:order_create' %}" class="btn btn-success">Place New Print Order</a>
+        <a href="{% url 'typing_service:order_create_view' %}" class="btn btn-info ms-2">Place New Typing Order</a>
+    </div>
+</div>
+{% endblock %} 

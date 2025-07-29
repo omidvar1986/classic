@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'user_portal',
     'core',
     'paymentslip',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -166,6 +167,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email settings for development (prints to console)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+LOGIN_URL = '/accounts/login/'
 
 
 # Also include a section where the admin can change the price of each unit of typing or printing if it changes so that the user is informed and the calculation can be automatic.
