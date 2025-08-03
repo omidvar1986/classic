@@ -1,0 +1,427 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Digital File Shop" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section with Banners -->
+    {% if banners %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div id="shopCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    {% for banner in banners %}
+                    <button type="button" data-bs-target="#shopCarousel" data-bs-slide-to="{{ forloop.counter0 }}" 
+                            {% if forloop.first %}class="active"{% endif %}></button>
+                    {% endfor %}
+                </div>
+                <div class="carousel-inner">
+                    {% for banner in banners %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <div class="card bg-gradient-primary text-white border-0">
+                            <div class="card-body text-center py-5">
+                                <h1 class="display-4 mb-3">{{ banner.title }}</h1>
+                                <p class="lead mb-4">{{ banner.subtitle }}</p>
+                                {% if banner.link_url %}
+                                <a href="{{ banner.link_url }}" class="btn btn-light btn-lg">{% trans "Shop Now" %}</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#shopCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#shopCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Featured Categories -->
+    {% if featured_categories %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="fas fa-th-large text-primary me-2"></i>{% trans "Shop by Category" %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for category in featured_categories %}
+                        <div class="col-md-4 col-lg-2 mb-3">
+                            <a href="{% url 'digital_shop:category_detail' category.slug %}" class="text-decoration-none">
+                                <div class="card h-100 border-0 shadow-sm category-card text-center">
+                                    <div class="card-body p-3">
+                                        <div class="mb-2">
+                                            <i class="{{ category.icon }} fa-2x text-{{ category.color }}"></i>
+                                        </div>
+                                        <h6 class="card-title mb-1">{{ category.name }}</h6>
+                                        <small class="text-muted">{{ category.product_count }} {% trans "products" %}</small>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Featured Products -->
+    {% if featured_products %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-star text-warning me-2"></i>محصولات ویژه
+                        </h4>
+                        <a href="{% url 'digital_shop:product_list' %}" class="btn btn-outline-primary btn-sm">
+                            مشاهده همه
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in featured_products %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm product-card">
+                                <div class="position-relative">
+                                    {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    {% if product.discount_percentage > 0 %}
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                        -{{ product.discount_percentage }}%
+                                    </span>
+                                    {% endif %}
+                                    {% if product.is_new %}
+                                    <span class="badge bg-success position-absolute top-0 start-0 m-2">
+                                        جدید
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="card-text small text-muted">{{ product.short_description|truncatechars:60 }}</p>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-{{ product.category.color }} me-1">{{ product.category.name }}</span>
+                                        {% if product.brand %}
+                                        <span class="badge bg-secondary">{{ product.brand.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong class="text-primary">{{ product.price }} تومان</strong>
+                                            {% if product.compare_price and product.compare_price > product.price %}
+                                            <small class="text-muted text-decoration-line-through ms-1">{{ product.compare_price }} تومان</small>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-eye me-1"></i>{{ product.view_count }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                            مشاهده جزئیات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- New Products -->
+    {% if new_products %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="fas fa-fire text-danger me-2"></i>محصولات جدید
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in new_products %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm product-card">
+                                <div class="position-relative">
+                                    {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="badge bg-success position-absolute top-0 start-0 m-2">
+                                        جدید
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="card-text small text-muted">{{ product.short_description|truncatechars:60 }}</p>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-{{ product.category.color }} me-1">{{ product.category.name }}</span>
+                                        {% if product.brand %}
+                                        <span class="badge bg-secondary">{{ product.brand.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong class="text-primary">{{ product.price }} تومان</strong>
+                                            {% if product.compare_price and product.compare_price > product.price %}
+                                            <small class="text-muted text-decoration-line-through ms-1">{{ product.compare_price }} تومان</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-outline-primary btn-sm">
+                                            مشاهده جزئیات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Best Sellers -->
+    {% if best_sellers %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="fas fa-trophy text-warning me-2"></i>پرفروش‌ترین‌ها
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in best_sellers %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm product-card">
+                                <div class="position-relative">
+                                    {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="badge bg-warning position-absolute top-0 start-0 m-2">
+                                        <i class="fas fa-star me-1"></i>بهترین
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="card-text small text-muted">{{ product.short_description|truncatechars:60 }}</p>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-{{ product.category.color }} me-1">{{ product.category.name }}</span>
+                                        {% if product.brand %}
+                                        <span class="badge bg-secondary">{{ product.brand.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong class="text-primary">{{ product.price }} تومان</strong>
+                                            {% if product.compare_price and product.compare_price > product.price %}
+                                            <small class="text-muted text-decoration-line-through ms-1">{{ product.compare_price }} تومان</small>
+                                            {% endif %}
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-shopping-cart me-1"></i>{{ product.sold_count }}
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-warning btn-sm">
+                                            مشاهده جزئیات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- On Sale Products -->
+    {% if on_sale_products %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="fas fa-tags text-danger me-2"></i>تخفیف
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for product in on_sale_products %}
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="card h-100 border-0 shadow-sm product-card">
+                                <div class="position-relative">
+                                    {% if product.images.first %}
+                                    <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                        <i class="fas fa-image fa-3x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                        -{{ product.discount_percentage }}%
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ product.name }}</h6>
+                                    <p class="card-text small text-muted">{{ product.short_description|truncatechars:60 }}</p>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge bg-{{ product.category.color }} me-1">{{ product.category.name }}</span>
+                                        {% if product.brand %}
+                                        <span class="badge bg-secondary">{{ product.brand.name }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong class="text-danger">{{ product.price }} تومان</strong>
+                                            <small class="text-muted text-decoration-line-through ms-1">{{ product.compare_price }} تومان</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-grid">
+                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-danger btn-sm">
+                                            مشاهده جزئیات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Featured Brands -->
+    {% if brands %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h4 class="mb-0">
+                        <i class="fas fa-crown text-warning me-2"></i>برندهای ویژه
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for brand in brands %}
+                        <div class="col-md-3 col-lg-2 mb-3">
+                            <div class="card h-100 border-0 shadow-sm brand-card text-center">
+                                <div class="card-body p-3">
+                                    {% if brand.logo %}
+                                    <img src="{{ brand.logo.url }}" class="img-fluid mb-2" alt="{{ brand.name }}" style="max-height: 60px;">
+                                    {% else %}
+                                    <div class="mb-2">
+                                        <i class="fas fa-building fa-2x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <h6 class="card-title small">{{ brand.name }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.category-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.product-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.brand-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.brand-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.carousel-item .card {
+    border-radius: 0;
+}
+</style>
+{% endblock %} 

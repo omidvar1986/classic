@@ -3,37 +3,72 @@
 {% block title %}Register{% endblock %}
 {% block extra_css %}
 <style>
-    .register-mascot {
-        width: 120px;
-        margin: 0 auto 1.5rem auto;
-        display: block;
-    }
-    .register-card {
-        max-width: 400px;
-        margin: 2rem auto;
-        border-radius: 18px;
-        box-shadow: 0 4px 32px rgba(0,0,0,0.08);
-        padding: 2.5rem 2rem 2rem 2rem;
-        background: #fff;
-    }
-    .form-label { font-weight: 600; }
-    .form-control:focus { box-shadow: 0 0 0 2px #aee1f9; }
+.classic-logo {
+    display: flex;
+    justify-content: center;
+    margin: 2rem auto;
+    text-align: center;
+}
+.logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    position: relative;
+    padding: 0.5rem 2rem;
+}
+.logo-text::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    z-index: -1;
+}
+.logo-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    margin-top: 0.5rem;
+    font-weight: 300;
+}
+.logo-container {
+    border: 2px solid #ecf0f1;
+    border-radius: 15px;
+    padding: 2rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+.register-card {
+    max-width: 400px;
+    margin: 2rem auto;
+    border-radius: 18px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+    padding: 2.5rem 2rem 2rem 2rem;
+    background: #fff;
+}
+.form-label { font-weight: 600; }
+.form-control:focus { box-shadow: 0 0 0 2px #aee1f9; }
 </style>
 {% endblock %}
 {% block content %}
-<div class="register-card">
-    <!-- Mascot SVG (smiling for registration) -->
-    <div id="mascot-container">
-        <svg id="mascot" class="register-mascot" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="60" r="56" fill="#f3f7fa" stroke="#b3d8f6" stroke-width="4"/>
-            <ellipse cx="60" cy="70" rx="28" ry="22" fill="#fff"/>
-            <ellipse cx="60" cy="70" rx="10" ry="8" fill="#222"/>
-            <!-- Smile -->
-            <path d="M50 80 Q60 90 70 80" stroke="#28a745" stroke-width="3" fill="none"/>
-            <!-- Fluffy top -->
-            <path d="M40 32 Q60 10 80 32" stroke="#b3d8f6" stroke-width="4" fill="none"/>
-        </svg>
+<!-- Classic Store Logo -->
+<div class="classic-logo">
+    <div class="logo-container">
+        <div class="logo-text">Classic</div>
+        <div class="logo-subtitle">Smart Office Solutions</div>
     </div>
+</div>
+<div class="register-card">
     <form method="post" autocomplete="off">
         {% csrf_token %}
         <div class="mb-3">

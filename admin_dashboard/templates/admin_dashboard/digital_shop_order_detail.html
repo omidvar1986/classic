@@ -1,0 +1,347 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}جزئیات سفارش - {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-shopping-cart text-info me-2"></i>جزئیات سفارش</h2>
+        <div>
+            <a href="{% url 'admin_dashboard:digital_shop_orders' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت به سفارشات
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Order Information -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">اطلاعات سفارش</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>جزئیات سفارش</h6>
+                            <p><strong>شماره سفارش:</strong> {{ order.order_number }}</p>
+                            <p><strong>تاریخ سفارش:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                            <p><strong>وضعیت:</strong> 
+                                <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'confirmed' %}info{% elif order.status == 'processing' %}primary{% elif order.status == 'shipped' %}info{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>وضعیت پرداخت:</strong> 
+                                <span class="badge bg-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% elif order.payment_status == 'failed' %}danger{% else %}secondary{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>اطلاعات مشتری</h6>
+                            <p><strong>نام:</strong> {{ order.customer_name }}</p>
+                            <p><strong>{% trans "Email" %}:</strong> {{ order.customer_email }}</p>
+                            <p><strong>تلفن:</strong> {{ order.customer_phone }}</p>
+                            {% if order.customer_address %}
+                            <p><strong>آدرس:</strong> {{ order.customer_address }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">آیتم‌های سفارش</h5>
+                </div>
+                <div class="card-body">
+                    {% if order.items.all %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>محصول</th>
+                                    <th>قیمت</th>
+                                    <th>تعداد</th>
+                                    <th>مجموع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.images.first %}
+                                            <img src="{{ item.product.images.first.image.url }}" 
+                                                 alt="{{ item.product.name }}" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                                            {% else %}
+                                            <div style="width: 50px; height: 50px; background-color: #f8f9fa; border-radius: 5px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ item.product.name }}</strong>
+                                                {% if item.product.sku %}
+                                                <br><small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ item.price }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><strong>${{ item.total_price }}</strong></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">آیتمی برای این سفارش یافت نشد.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Order Notes -->
+            {% if order.admin_notes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">یادداشت‌های مدیر</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ order.admin_notes }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">خلاصه سفارش</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>جمع فرعی:</span>
+                        <span>${{ order.subtotal }}</span>
+                    </div>
+                    {% if order.discount_amount > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>تخفیف:</span>
+                        <span class="text-success">-${{ order.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.shipping_cost > 0 %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>حمل‌ونقل:</span>
+                        <span>${{ order.shipping_cost }}</span>
+                    </div>
+                    {% endif %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>مجموع:</strong>
+                        <strong>${{ order.total_amount }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">عملیات سریع</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if order.status == 'pending' %}
+                        <button type="button" class="btn btn-success" onclick="updateStatus('confirmed')">
+                            <i class="fas fa-check me-1"></i>تأیید سفارش
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'confirmed' %}
+                        <button type="button" class="btn btn-primary" onclick="updateStatus('processing')">
+                            <i class="fas fa-cog me-1"></i>شروع پردازش
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'processing' %}
+                        <button type="button" class="btn btn-info" onclick="updateStatus('shipped')">
+                            <i class="fas fa-shipping-fast me-1"></i>علامت‌گذاری به عنوان ارسال شده
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'shipped' %}
+                        <button type="button" class="btn btn-success" onclick="updateStatus('delivered')">
+                            <i class="fas fa-check-double me-1"></i>علامت‌گذاری به عنوان تحویل داده شده
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status not in 'delivered,cancelled,refunded' %}
+                        <button type="button" class="btn btn-danger" onclick="updateStatus('cancelled')">
+                            <i class="fas fa-times me-1"></i>لغو سفارش
+                        </button>
+                        {% endif %}
+                        
+                        {% if order.status == 'delivered' %}
+                        <button type="button" class="btn btn-warning" onclick="updateStatus('refunded')">
+                            <i class="fas fa-undo me-1"></i>پردازش بازپرداخت
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status History -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">تاریخچه وضعیت</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6>سفارش ایجاد شد</h6>
+                                <small class="text-muted">{{ order.created_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                        </div>
+                        {% if order.updated_at != order.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6>آخرین به‌روزرسانی</h6>
+                                <small class="text-muted">{{ order.updated_at|date:"M d, Y H:i" }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">به‌روزرسانی وضعیت سفارش</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="statusForm" method="post">
+                    {% csrf_token %}
+                    <input type="hidden" id="orderId" name="order_id" value="{{ order.id }}">
+                    
+                    <div class="mb-3">
+                        <label for="newStatus" class="form-label">وضعیت جدید</label>
+                        <select class="form-select" id="newStatus" name="status" required>
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>در انتظار</option>
+                            <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>تأیید شده</option>
+                            <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>در حال پردازش</option>
+                            <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>ارسال شده</option>
+                            <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>تحویل داده شده</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>لغو شده</option>
+                            <option value="refunded" {% if order.status == 'refunded' %}selected{% endif %}>بازپرداخت شده</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="adminNotes" class="form-label">یادداشت‌های مدیر</label>
+                        <textarea class="form-control" id="adminNotes" name="admin_notes" rows="3" placeholder="{% trans 'Add any notes about this order...' %}">{{ order.admin_notes }}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <button type="submit" form="statusForm" class="btn btn-primary">به‌روزرسانی وضعیت</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateStatus(status) {
+    document.getElementById('newStatus').value = status;
+    
+    const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+    statusModal.show();
+}
+
+// Handle form submission
+document.getElementById('statusForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const orderId = formData.get('order_id');
+    
+    fetch(`/admin-panel/digital-shop/orders/${orderId}/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            alert('Error updating order status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating order status');
+    });
+});
+</script>
+
+<style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.timeline-content small {
+    font-size: 0.8rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %} 

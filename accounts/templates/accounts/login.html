@@ -3,81 +3,73 @@
 {% block title %}Login{% endblock %}
 {% block extra_css %}
 <style>
-    .login-mascot {
-        width: 140px;
-        margin: 0 auto 1.5rem auto;
-        display: block;
-    }
-    .login-card {
-        max-width: 400px;
-        margin: 2rem auto;
-        border-radius: 18px;
-        box-shadow: 0 4px 32px rgba(0,0,0,0.08);
-        padding: 2.5rem 2rem 2rem 2rem;
-        background: #fff;
-    }
-    .form-label { font-weight: 600; }
-    .form-control:focus { box-shadow: 0 0 0 2px #aee1f9; }
-    .show-password-label { font-size: 0.95rem; margin-left: 0.5rem; }
-    .bear-paw {
-        transform-origin: 120px 60px;
-        transition: transform 0.3s cubic-bezier(.4,2,.6,1);
-    }
-    .bear-paw.wave {
-        animation: wavepaw 0.7s cubic-bezier(.4,2,.6,1) 1;
-    }
-    @keyframes wavepaw {
-        0% { transform: rotate(0deg); }
-        30% { transform: rotate(-25deg); }
-        60% { transform: rotate(20deg); }
-        100% { transform: rotate(0deg); }
-    }
+.classic-logo {
+    display: flex;
+    justify-content: center;
+    margin: 2rem auto;
+    text-align: center;
+}
+.logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    position: relative;
+    padding: 0.5rem 2rem;
+}
+.logo-text::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    z-index: -1;
+}
+.logo-subtitle {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    margin-top: 0.5rem;
+    font-weight: 300;
+}
+.logo-container {
+    border: 2px solid #ecf0f1;
+    border-radius: 15px;
+    padding: 2rem;
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
 </style>
 {% endblock %}
 {% block content %}
-<div class="login-card">
-    <!-- Cute Bear Mascot SVG (waves paw when password is focused) -->
-    <div id="mascot-container">
-        <svg id="bear-mascot" class="login-mascot" viewBox="0 0 240 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="120" cy="90" rx="90" ry="80" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-            <!-- Ears -->
-            <ellipse cx="50" cy="40" rx="24" ry="22" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-            <ellipse cx="190" cy="40" rx="24" ry="22" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-            <!-- Face -->
-            <ellipse cx="120" cy="100" rx="60" ry="55" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-            <!-- Eyes -->
-            <ellipse cx="100" cy="110" rx="7" ry="8" fill="#222"/>
-            <ellipse cx="140" cy="110" rx="7" ry="8" fill="#222"/>
-            <!-- Nose -->
-            <ellipse cx="120" cy="125" rx="10" ry="7" fill="#b3a16c"/>
-            <!-- Smile -->
-            <path d="M110 140 Q120 150 130 140" stroke="#b3a16c" stroke-width="3" fill="none"/>
-            <!-- Left Paw (waving) -->
-            <g id="bear-paw" class="bear-paw">
-                <ellipse cx="60" cy="60" rx="22" ry="18" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-                <circle cx="60" cy="60" r="7" fill="#b3a16c"/>
-                <circle cx="50" cy="55" r="3" fill="#b3a16c"/>
-                <circle cx="70" cy="55" r="3" fill="#b3a16c"/>
-            </g>
-            <!-- Right Paw (static) -->
-            <ellipse cx="180" cy="120" rx="18" ry="14" fill="#fff7e6" stroke="#b3a16c" stroke-width="4"/>
-        </svg>
+<!-- Classic Store Logo -->
+<div class="classic-logo">
+    <div class="logo-container">
+        <div class="logo-text">Classic</div>
+        <div class="logo-subtitle">Smart Office Solutions</div>
     </div>
-    <form method="post" autocomplete="off">
+</div>
+<div class="login-card">
+    <form id="login-form" method="post" autocomplete="off">
         {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="id_email" name="email" placeholder="email@domain.com" required>
+        <label for="email-input">Email</label>
+        <input id="email-input" type="email" name="email" class="form-control" required>
+        <label for="password-input">Password</label>
+        <input id="password-input" type="password" name="password" class="form-control" required>
+        <div class="form-check mt-2">
+            <input type="checkbox" id="show-password" class="form-check-input">
+            <label for="show-password" class="form-check-label">Show Password</label>
         </div>
-        <div class="mb-3">
-            <label for="id_password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="id_password" name="password" required>
-            <div class="form-check mt-2">
-                <input class="form-check-input" type="checkbox" id="show-password">
-                <label class="form-check-label show-password-label" for="show-password">Show</label>
-            </div>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
         <div class="text-center mt-3">
             <a href="{% url 'accounts:password_reset' %}">Forgot password?</a> |
             <a href="{% url 'accounts:register' %}">Register</a>
@@ -85,18 +77,13 @@
     </form>
 </div>
 <script>
-// Bear paw animation
-const passwordInput = document.getElementById('id_password');
-const bearPaw = document.getElementById('bear-paw');
+const emailInput = document.getElementById('email-input');
+const passwordInput = document.getElementById('password-input');
 const showPassword = document.getElementById('show-password');
 
-function wavePaw() {
-    bearPaw.classList.add('wave');
-    setTimeout(() => bearPaw.classList.remove('wave'), 700);
-}
-passwordInput.addEventListener('focus', wavePaw);
-showPassword.addEventListener('change', function() {
-    if (this.checked) {
+// Show/hide password functionality
+showPassword.addEventListener('change', () => {
+    if (showPassword.checked) {
         passwordInput.type = 'text';
     } else {
         passwordInput.type = 'password';

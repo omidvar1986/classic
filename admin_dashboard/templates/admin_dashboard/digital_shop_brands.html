@@ -1,0 +1,248 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}مدیریت برندها{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-crown text-warning me-2"></i>مدیریت برندها</h2>
+        <div>
+            <a href="{% url 'admin_dashboard:digital_shop_dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت به داشبورد
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Add/Edit Brand Form -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>افزودن/ویرایش برند</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="brand_id" id="brand_id">
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">نام برند *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="slug" class="form-label">{% trans "Slug" %} *</label>
+                            <input type="text" class="form-control" id="slug" name="slug" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">توضیحات</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="website" class="form-label">وب‌سایت</label>
+                            <input type="url" class="form-control" id="website" name="website" placeholder="https://example.com">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">لوگوی برند</label>
+                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                            <div class="form-text">آپلود تصویر لوگوی برند</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    فعال
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
+                                <label class="form-check-label" for="is_featured">
+                                    برند ویژه
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save me-1"></i>ذخیره برند
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
+                                <i class="fas fa-times me-1"></i>پاک کردن فرم
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Brands List -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">برندها ({{ brands.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if brands %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>لوگو</th>
+                                    <th>نام</th>
+                                    <th>{% trans "Slug" %}</th>
+                                    <th>وب‌سایت</th>
+                                    <th>{% trans "Products" %}</th>
+                                    <th>وضعیت</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for brand in brands %}
+                                <tr>
+                                    <td>
+                                        {% if brand.logo %}
+                                        <img src="{{ brand.logo.url }}" alt="{{ brand.name }}" 
+                                             style="width: 40px; height: 40px; object-fit: contain; border-radius: 5px;">
+                                        {% else %}
+                                        <div style="width: 40px; height: 40px; background-color: #f8f9fa; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-building text-muted"></i>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ brand.name }}</strong>
+                                        {% if brand.description %}
+                                        <br><small class="text-muted">{{ brand.description|truncatechars:50 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><code>{{ brand.slug }}</code></td>
+                                    <td>
+                                        {% if brand.website %}
+                                        <a href="{{ brand.website }}" target="_blank" class="text-decoration-none">
+                                            <i class="fas fa-external-link-alt me-1"></i>بازدید
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ brand.products.count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            {% if brand.is_active %}
+                                            <span class="badge bg-success">فعال</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">غیرفعال</span>
+                                            {% endif %}
+                                            
+                                            {% if brand.is_featured %}
+                                            <span class="badge bg-warning">ویژه</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editBrand({{ brand.id }}, '{{ brand.name }}', '{{ brand.slug }}', '{{ brand.description }}', '{{ brand.website }}', {{ brand.is_active|yesno:'true,false' }}, {{ brand.is_featured|yesno:'true,false' }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="{% url 'digital_shop:brand_detail' brand.slug %}" 
+                                               class="btn btn-sm btn-outline-info" target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-crown fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">برندی یافت نشد</h5>
+                        <p class="text-muted">برای شروع اولین برند خود را ایجاد کنید.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editBrand(id, name, slug, description, website, isActive, isFeatured) {
+    document.getElementById('brand_id').value = id;
+    document.getElementById('name').value = name;
+    document.getElementById('slug').value = slug;
+    document.getElementById('description').value = description;
+    document.getElementById('website').value = website;
+    document.getElementById('is_active').checked = isActive;
+    document.getElementById('is_featured').checked = isFeatured;
+    
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>به‌روزرسانی برند';
+    
+    // Scroll to form
+    document.querySelector('.col-md-4').scrollIntoView({ behavior: 'smooth' });
+}
+
+function clearForm() {
+    document.getElementById('brand_id').value = '';
+    document.getElementById('name').value = '';
+    document.getElementById('slug').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('website').value = '';
+    document.getElementById('logo').value = '';
+    document.getElementById('is_active').checked = true;
+    document.getElementById('is_featured').checked = false;
+    
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>ذخیره برند';
+}
+
+// Auto-generate slug from name
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value;
+    const slug = name.toLowerCase()
+        .replace(/[^a-z0-9 -]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim('-');
+    document.getElementById('slug').value = slug;
+});
+</script>
+
+<style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
+}
+</style>
+{% endblock %} 

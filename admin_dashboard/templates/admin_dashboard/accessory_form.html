@@ -1,0 +1,268 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if action == 'add' %}
+        {% trans "Add New Accessory" %}
+    {% else %}
+        {% trans "Edit Accessory" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-tools me-2"></i>
+                    {% if action == 'add' %}
+                        {% trans "Add New Accessory" %}
+                    {% else %}
+                        {% trans "Edit Accessory" %}
+                    {% endif %}
+                </h2>
+                <a href="{% url 'admin_dashboard:accessories' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Accessories" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        {% if action == 'add' %}
+                            {% trans "Accessory Information" %}
+                        {% else %}
+                            {% trans "Edit Accessory Information" %}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Name -->
+                        <div class="mb-4">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <strong>{{ form.name.label }}</strong>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <strong>{{ form.description.label }}</strong>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price and Category Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.base_price.id_for_label }}" class="form-label">
+                                        <strong>{{ form.base_price.label }}</strong>
+                                    </label>
+                                    {{ form.base_price }}
+                                    {% if form.base_price.errors %}
+                                        <div class="text-danger small mt-1">{{ form.base_price.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label">
+                                        <strong>{{ form.category.label }}</strong>
+                                    </label>
+                                    {{ form.category }}
+                                    {% if form.category.errors %}
+                                        <div class="text-danger small mt-1">{{ form.category.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service Type and Sort Order Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.service_type.id_for_label }}" class="form-label">
+                                        <strong>{{ form.service_type.label }}</strong>
+                                    </label>
+                                    {{ form.service_type }}
+                                    {% if form.service_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.service_type.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.sort_order.id_for_label }}" class="form-label">
+                                        <strong>{{ form.sort_order.label }}</strong>
+                                    </label>
+                                    {{ form.sort_order }}
+                                    {% if form.sort_order.errors %}
+                                        <div class="text-danger small mt-1">{{ form.sort_order.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Icon -->
+                        <div class="mb-4">
+                            <label for="{{ form.icon.id_for_label }}" class="form-label">
+                                <strong>{{ form.icon.label }}</strong>
+                            </label>
+                            {{ form.icon }}
+                            {% if form.icon.errors %}
+                                <div class="text-danger small mt-1">{{ form.icon.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    <strong>{{ form.is_active.label }}</strong>
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <div class="text-danger small mt-1">{{ form.is_active.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                {% if action == 'add' %}
+                                    {% trans "Create Accessory" %}
+                                {% else %}
+                                    {% trans "Update Accessory" %}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help and Preview -->
+        <div class="col-lg-4">
+            <!-- Icon Preview -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye me-2"></i>{% trans "Icon Preview" %}</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div id="iconPreview" class="mb-3">
+                        <i class="fas fa-tools fa-3x text-primary"></i>
+                    </div>
+                    <small class="text-muted">{% trans "Icon will appear in the accessories list" %}</small>
+                </div>
+            </div>
+
+            <!-- Help Information -->
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>{% trans "Help" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6>{% trans "Field Guidelines:" %}</h6>
+                        <ul class="mb-0">
+                            <li><strong>{% trans "Name:" %}</strong> {% trans "Short, descriptive name for the accessory" %}</li>
+                            <li><strong>{% trans "Description:" %}</strong> {% trans "Detailed explanation of what the accessory provides" %}</li>
+                            <li><strong>{% trans "Price:" %}</strong> {% trans "Cost in Tomans (will be added to order total)" %}</li>
+                            <li><strong>{% trans "Category:" %}</strong> {% trans "Grouping for better organization" %}</li>
+                            <li><strong>{% trans "Service Type:" %}</strong> {% trans "Which services can use this accessory" %}</li>
+                            <li><strong>{% trans "Icon:" %}</strong> {% trans "FontAwesome icon class (e.g., fas fa-star)" %}</li>
+                            <li><strong>{% trans "Sort Order:" %}</strong> {% trans "Display order (lower numbers appear first)" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Icons -->
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-icons me-2"></i>{% trans "Popular Icons" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-tools')">
+                                <i class="fas fa-tools"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-star')">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-gift')">
+                                <i class="fas fa-gift"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-envelope')">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-folder')">
+                                <i class="fas fa-folder"></i>
+                            </button>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary btn-sm w-100" onclick="setIcon('fas fa-paperclip')">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iconInput = document.getElementById('{{ form.icon.id_for_label }}');
+    
+    function updateIconPreview() {
+        const iconClass = iconInput.value || 'fas fa-tools';
+        const preview = document.getElementById('iconPreview');
+        preview.innerHTML = `<i class="${iconClass} fa-3x text-primary"></i>`;
+    }
+    
+    // Update preview when input changes
+    iconInput.addEventListener('input', updateIconPreview);
+    
+    // Initial update
+    updateIconPreview();
+});
+
+function setIcon(iconClass) {
+    const iconInput = document.getElementById('{{ form.icon.id_for_label }}');
+    iconInput.value = iconClass;
+    
+    // Trigger input event to update preview
+    const event = new Event('input', { bubbles: true });
+    iconInput.dispatchEvent(event);
+}
+</script>
+{% endblock %} 

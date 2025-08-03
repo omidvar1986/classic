@@ -25,6 +25,18 @@
             <button type="submit" class="btn btn-primary">فیلتر</button>
         </div>
         <div class="col-auto ms-auto">
+            <a href="{% url 'admin_dashboard:digital_shop_dashboard' %}" class="btn btn-success me-2">
+                <i class="fas fa-shopping-cart me-1"></i> فروشگاه دیجیتال
+            </a>
+            <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-info me-2">
+                <i class="fas fa-tags me-1"></i> لوازم جانبی
+            </a>
+            <a href="{% url 'admin_dashboard:government_services' %}" class="btn btn-warning me-2">
+                <i class="fas fa-landmark me-1"></i> {% trans "Government Services" %}
+            </a>
+            <a href="{% url 'admin_dashboard:user_management' %}" class="btn btn-info me-2">
+                <i class="fas fa-users me-1"></i> {% trans "User Management" %}
+            </a>
             <a href="{% url 'admin_dashboard:settings' %}" class="btn btn-secondary">
                 <i class="fas fa-cogs me-1"></i> {% trans "Manage Settings" %}
             </a>

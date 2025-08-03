@@ -17,6 +17,8 @@ urlpatterns += i18n_patterns(
     path('', include('core.urls', namespace='core')),
     path('print/', include('print_service.urls', namespace='print_service')),
     path('typing/', include('typing_service.urls', namespace='typing_service')),
+    path('government/', include('government_services.urls', namespace='government_services')),
+    path('shop/', include('digital_shop.urls', namespace='digital_shop')),
     path('admin-panel/', include('admin_dashboard.urls', namespace='admin_dashboard')),
     prefix_default_language=False,
 )

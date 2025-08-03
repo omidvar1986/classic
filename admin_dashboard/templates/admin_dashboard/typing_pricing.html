@@ -1,0 +1,366 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}مدیریت قیمت‌گذاری تایپ{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-keyboard text-info me-2"></i>مدیریت قیمت‌گذاری تایپ
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:settings_dashboard' %}">تنظیمات</a></li>
+                    <li class="breadcrumb-item active">قیمت‌گذاری تایپ</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت
+            </a>
+            <button type="button" class="btn btn-primary" onclick="savePricing()">
+                <i class="fas fa-save me-1"></i>ذخیره تنظیمات
+            </button>
+        </div>
+    </div>
+
+    <!-- Pricing Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.price_per_page|floatformat:0 }}</h4>
+                    <p class="text-muted mb-0">قیمت هر صفحه</p>
+                    <small class="text-primary">تومان</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.urgent_price_multiplier|floatformat:1 }}x</h4>
+                    <p class="text-muted mb-0">ضریب فوری</p>
+                    <small class="text-warning">50% گران‌تر</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-percentage fa-2x text-success mb-3"></i>
+                    <h4 class="mb-1">{{ avg_bulk_discount|floatformat:0 }}%</h4>
+                    <p class="text-muted mb-0">تخفیف متوسط عمده</p>
+                    <small class="text-success">برای سفارشات بزرگ</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-envelope fa-2x text-info mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.email_delivery_price|floatformat:0 }}</h4>
+                    <p class="text-muted mb-0">تحویل ایمیل</p>
+                    <small class="text-info">تومان</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Configuration -->
+    <div class="row">
+        <!-- Base Pricing -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>تنظیمات پایه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="basePricingForm">
+                        <div class="mb-3">
+                            <label for="price_per_page" class="form-label">قیمت هر صفحه (تومان)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="price_per_page" 
+                                       value="{{ pricing.price_per_page }}" min="0" step="1000">
+                                <span class="input-group-text">تومان</span>
+                            </div>
+                            <div class="form-text">قیمت پایه برای تایپ هر صفحه</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="urgent_price_multiplier" class="form-label">ضریب قیمت فوری</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="urgent_price_multiplier" 
+                                       value="{{ pricing.urgent_price_multiplier }}" min="1" max="5" step="0.1">
+                                <span class="input-group-text">برابر</span>
+                            </div>
+                            <div class="form-text">مثال: 1.5 یعنی 50% گران‌تر برای تایپ فوری</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Discounts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2"></i>تخفیف‌های عمده
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="bulkDiscountForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_5" class="form-label">5+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_5" 
+                                           value="{{ pricing.bulk_discount_5 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">5% تخفیف</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_10" class="form-label">10+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_10" 
+                                           value="{{ pricing.bulk_discount_10 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">10% تخفیف</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_20" class="form-label">20+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_20" 
+                                           value="{{ pricing.bulk_discount_20 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">15% تخفیف</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Options -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>گزینه‌های تحویل
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="deliveryForm">
+                        <div class="mb-3">
+                            <label for="email_delivery_price" class="form-label">هزینه تحویل ایمیل (تومان)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="email_delivery_price" 
+                                       value="{{ pricing.email_delivery_price }}" min="0" step="1000">
+                                <span class="input-group-text">تومان</span>
+                            </div>
+                            <div class="form-text">معمولاً رایگان است</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="print_delivery_price" class="form-label">هزینه تحویل چاپی (تومان)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="print_delivery_price" 
+                                       value="{{ pricing.print_delivery_price }}" min="0" step="1000">
+                                <span class="input-group-text">تومان</span>
+                            </div>
+                            <div class="form-text">هزینه چاپ و تحویل فیزیکی</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Calculator Preview -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>محاسبه‌گر قیمت
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="preview_pages" class="form-label">تعداد صفحات</label>
+                        <input type="number" class="form-control" id="preview_pages" value="5" min="1" max="1000">
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="preview_urgent">
+                            <label class="form-check-label" for="preview_urgent">تایپ فوری</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="preview_delivery" class="form-label">نوع تحویل</label>
+                        <select class="form-select" id="preview_delivery">
+                            <option value="email">ایمیل (رایگان)</option>
+                            <option value="print">چاپی</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>قیمت تخمینی:</strong>
+                        <div id="preview_price" class="fs-4 text-primary">0 تومان</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="savePricing()">
+                        <i class="fas fa-save me-2"></i>ذخیره تنظیمات قیمت‌گذاری
+                    </button>
+                    <p class="text-muted mt-2 mb-0">تغییرات بلافاصله در سیستم اعمال می‌شود</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">موفقیت</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <p>تنظیمات قیمت‌گذاری با موفقیت ذخیره شد.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">باشه</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function savePricing() {
+    const formData = new FormData();
+    
+    // Base pricing
+    formData.append('price_per_page', document.getElementById('price_per_page').value);
+    formData.append('urgent_price_multiplier', document.getElementById('urgent_price_multiplier').value);
+    
+    // Bulk discounts
+    formData.append('bulk_discount_5', document.getElementById('bulk_discount_5').value);
+    formData.append('bulk_discount_10', document.getElementById('bulk_discount_10').value);
+    formData.append('bulk_discount_20', document.getElementById('bulk_discount_20').value);
+    
+    // Delivery options
+    formData.append('email_delivery_price', document.getElementById('email_delivery_price').value);
+    formData.append('print_delivery_price', document.getElementById('print_delivery_price').value);
+    
+    fetch('{% url "admin_dashboard:save_typing_pricing" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            new bootstrap.Modal(document.getElementById('successModal')).show();
+        } else {
+            alert('خطا در ذخیره تنظیمات: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور');
+    });
+}
+
+function updatePricePreview() {
+    const pages = parseInt(document.getElementById('preview_pages').value) || 0;
+    const isUrgent = document.getElementById('preview_urgent').checked;
+    const deliveryType = document.getElementById('preview_delivery').value;
+    
+    // Get current pricing values
+    const basePrice = parseFloat(document.getElementById('price_per_page').value) || 0;
+    const urgentMultiplier = parseFloat(document.getElementById('urgent_price_multiplier').value) || 1;
+    const emailDelivery = parseFloat(document.getElementById('email_delivery_price').value) || 0;
+    const printDelivery = parseFloat(document.getElementById('print_delivery_price').value) || 0;
+    
+    let price = basePrice * pages;
+    
+    // Apply urgent multiplier
+    if (isUrgent) {
+        price *= urgentMultiplier;
+    }
+    
+    // Apply bulk discount
+    let bulkDiscount = 1;
+    if (pages >= 20) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_20').value) || 1;
+    } else if (pages >= 10) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_10').value) || 1;
+    } else if (pages >= 5) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_5').value) || 1;
+    }
+    
+    price *= bulkDiscount;
+    
+    // Add delivery cost
+    if (deliveryType === 'print') {
+        price += printDelivery;
+    } else {
+        price += emailDelivery;
+    }
+    
+    document.getElementById('preview_price').textContent = Math.round(price).toLocaleString() + ' تومان';
+}
+
+// Add event listeners for price preview
+document.addEventListener('DOMContentLoaded', function() {
+    const previewInputs = ['preview_pages', 'preview_urgent', 'preview_delivery'];
+    const pricingInputs = ['price_per_page', 'urgent_price_multiplier', 
+                          'bulk_discount_5', 'bulk_discount_10', 'bulk_discount_20',
+                          'email_delivery_price', 'print_delivery_price'];
+    
+    previewInputs.forEach(id => {
+        document.getElementById(id).addEventListener('change', updatePricePreview);
+    });
+    
+    pricingInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updatePricePreview);
+    });
+    
+    // Initial price calculation
+    updatePricePreview();
+});
+</script>
+{% endblock %} 

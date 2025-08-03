@@ -1,0 +1,303 @@
+{% extends 'admin_dashboard/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "User Statistics" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .stats-card h3 {
+        color: white;
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .stats-card p {
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 0;
+    }
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    .top-user-card {
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    .top-user-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .back-button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+    .progress-ring {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    .progress-ring circle {
+        fill: none;
+        stroke-width: 8;
+    }
+    .progress-ring .bg {
+        stroke: #e9ecef;
+    }
+    .progress-ring .progress {
+        stroke: #007bff;
+        stroke-linecap: round;
+        transition: stroke-dasharray 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'admin_dashboard:user_management' %}" class="btn back-button">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to User Management" %}
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-chart-bar me-2"></i>{% trans "User Statistics & Analytics" %}</h2>
+        <div class="text-muted">
+            <small>{% trans "Last updated" %}: {{ "now"|date:"M d, Y H:i" }}</small>
+        </div>
+    </div>
+
+    <!-- Main Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.total_users }}</h3>
+                <p>{% trans "Total Users" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.active_users }}</h3>
+                <p>{% trans "Active Users" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.staff_users }}</h3>
+                <p>{% trans "Staff Users" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ stats.superusers }}</h3>
+                <p>{% trans "Superusers" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h3>{{ stats.users_with_print_orders }}</h3>
+                <p>{% trans "Users with Print Orders" %}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h3>{{ stats.users_with_typing_orders }}</h3>
+                <p>{% trans "Users with Typing Orders" %}</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card">
+                <h3>{{ stats.recent_users }}</h3>
+                <p>{% trans "New Users (30 days)" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics -->
+    <div class="row">
+        <!-- User Activity Chart -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie me-2"></i>{% trans "User Activity Distribution" %}
+                </h5>
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="progress" cx="60" cy="60" r="50" 
+                                        stroke-dasharray="{{ stats.active_users|div:stats.total_users|mul:314.16 }} 314.16"></circle>
+                            </svg>
+                        </div>
+                        <h6 class="mt-2">فعال</h6>
+                        <small class="text-muted">{{ stats.active_users|div:stats.total_users|mul:100|floatformat:1 }}%</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="progress" cx="60" cy="60" r="50" 
+                                        stroke-dasharray="{{ stats.staff_users|div:stats.total_users|mul:314.16 }} 314.16" 
+                                        style="stroke: #28a745;"></circle>
+                            </svg>
+                        </div>
+                        <h6 class="mt-2">{% trans "Staff" %}</h6>
+                        <small class="text-muted">{{ stats.staff_users|div:stats.total_users|mul:100|floatformat:1 }}%</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="progress-ring">
+                            <svg width="120" height="120">
+                                <circle class="bg" cx="60" cy="60" r="50"></circle>
+                                <circle class="progress" cx="60" cy="60" r="50" 
+                                        stroke-dasharray="{{ stats.superusers|div:stats.total_users|mul:314.16 }} 314.16" 
+                                        style="stroke: #ffc107;"></circle>
+                            </svg>
+                        </div>
+                        <h6 class="mt-2">{% trans "Superusers" %}</h6>
+                        <small class="text-muted">{{ stats.superusers|div:stats.total_users|mul:100|floatformat:1 }}%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Activity -->
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-shopping-cart me-2"></i>{% trans "Order Activity" %}
+                </h5>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h3 class="text-primary">{{ stats.users_with_print_orders }}</h3>
+                            <p class="mb-0">{% trans "Print Orders" %}</p>
+                            <small class="text-muted">
+                                {{ stats.users_with_print_orders|div:stats.total_users|mul:100|floatformat:1 }}% of users
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h3 class="text-warning">{{ stats.users_with_typing_orders }}</h3>
+                        <p class="mb-0">{% trans "Typing Orders" %}</p>
+                        <small class="text-muted">
+                            {{ stats.users_with_typing_orders|div:stats.total_users|mul:100|floatformat:1 }}% of users
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Users -->
+    <div class="row">
+        <div class="col-12">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-trophy me-2"></i>{% trans "Top Users by Order Activity" %}
+                </h5>
+                
+                {% if top_users %}
+                    <div class="row">
+                        {% for user_data in top_users %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card top-user-card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if user_data.user.first_name and user_data.user.last_name %}
+                                                    {{ user_data.user.first_name }} {{ user_data.user.last_name }}
+                                                {% else %}
+                                                    {{ user_data.user.username }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">{{ user_data.user.email }}</small>
+                                        </div>
+                                        <span class="badge bg-primary">{{ user_data.total_orders }}</span>
+                                    </div>
+                                    
+                                    <div class="row text-center">
+                                        <div class="col-6">
+                                            <div class="border-end">
+                                                <h6 class="mb-0 text-success">{{ user_data.print_orders }}</h6>
+                                                <small class="text-muted">چاپ</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h6 class="mb-0 text-warning">{{ user_data.typing_orders }}</h6>
+                                            <small class="text-muted">{% trans "Typing" %}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-2">
+                                        <a href="{% url 'admin_dashboard:user_detail' user_data.user.id %}" 
+                                           class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="fas fa-eye me-1"></i>مشاهده جزئیات
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-users fa-2x text-muted mb-3"></i>
+                        <h5 class="text-muted">{% trans "No user activity found" %}</h5>
+                        <p class="text-muted">{% trans "Users will appear here once they place orders." %}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cogs me-2"></i>عملیات سریع
+                    </h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'admin_dashboard:user_management' %}" class="btn btn-primary">
+                            <i class="fas fa-users me-2"></i>{% trans "Manage Users" %}
+                        </a>
+                        <a href="{% url 'admin_dashboard:dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-tachometer-alt me-2"></i>{% trans "Dashboard" %}
+                        </a>
+                        <a href="{% url 'admin_dashboard:settings' %}" class="btn btn-info">
+                            <i class="fas fa-cog me-2"></i>{% trans "Settings" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

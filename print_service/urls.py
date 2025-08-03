@@ -29,4 +29,8 @@ urlpatterns = [
     path('admin-dashboard/mark-completed/<int:order_id>/', views.mark_completed, name='mark_completed'),
     path('admin-dashboard/bank-settings/', views.bank_settings_view, name='bank_settings'),
     # path('admin-settings/', views.staff_settings, name='staff_settings'),
+    
+    # Store interface
+    path('store/', views.store_order, name='store_order'),
+    path('api/pricing/', views.pricing_api, name='pricing_api'),
 ]

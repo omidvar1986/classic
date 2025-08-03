@@ -13,12 +13,12 @@
         <div class="col-md-6">
             <h5>{% trans "Customer Info" %}</h5>
             <ul class="list-group mb-4">
-                <li class="list-group-item"><strong>{% trans "Name" %}:</strong> {{ order.name }}</li>
+                <li class="list-group-item"><strong>نام:</strong> {{ order.name }}</li>
                 {% if order.email %}
                     <li class="list-group-item"><strong>{% trans "Email" %}:</strong> {{ order.email }}</li>
                 {% endif %}
                 {% if order.phone %}
-                    <li class="list-group-item"><strong>{% trans "Phone" %}:</strong> {{ order.phone }}</li>
+                    <li class="list-group-item"><strong>تلفن:</strong> {{ order.phone }}</li>
                 {% endif %}
                 <li class="list-group-item"><strong>{% trans "Created At" %}:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</li>
             </ul>
@@ -26,7 +26,7 @@
             <h5>{% trans "Payment Info" %}</h5>
             <ul class="list-group mb-4">
                 <li class="list-group-item"><strong>{% trans "Payment Method" %}:</strong> {{ order.get_payment_method_display }}</li>
-                <li class="list-group-item"><strong>{% trans "Payment Status" %}:</strong>
+                <li class="list-group-item"><strong>وضعیت پرداخت:</strong>
                     <span class="badge bg-warning">{{ order.get_payment_status_display }}</span>
                 </li>
             </ul>
@@ -46,7 +46,7 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="payment_status" class="form-label">{% trans "Payment Status" %}</label>
+                    <label for="payment_status" class="form-label">وضعیت پرداخت</label>
                     {{ form.payment_status }}
                     {% if form.payment_status.errors %}
                         <div class="text-danger">{{ form.payment_status.errors }}</div>
@@ -64,7 +64,7 @@
                         <i class="fas fa-save me-1"></i>{% trans "Save Decision" %}
                     </button>
                     <a href="{% url 'admin_dashboard:dashboard' %}" class="btn btn-outline-secondary ms-2">
-                        {% trans "Cancel" %}
+                        لغو
                     </a>
                 </div>
             </form>

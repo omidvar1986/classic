@@ -1,15 +1,22 @@
 from django.contrib import admin
-from .models import TypingOrder, TypedFile, TypingPriceSettings
+from .models import TypingOrder, TypedFile, TypingPriceSettings, TypingOrderAccessory
 from django.utils.translation import gettext_lazy as _
+
+class TypingOrderAccessoryInline(admin.TabularInline):
+    model = TypingOrderAccessory
+    extra = 0
+    readonly_fields = ['price']
+    fields = ['accessory', 'quantity', 'price']
 
 @admin.register(TypingOrder)
 class TypingOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user_name', 'status', 'total_price', 'created_at', 'final_approved')
+    list_display = ('id', 'user_name', 'status', 'total_price', 'created_at', 'final_approved', 'get_total_price')
     list_filter = ('status', 'final_approved', 'created_at')
     search_fields = ('user_name', 'user_email', 'id')
+    inlines = [TypingOrderAccessoryInline]
     
     # Allow admin to edit these fields in the change view
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at', 'get_total_price', 'get_accessories_total')
     fieldsets = (
         (_('Order Information'), {
             'fields': ('user_name', 'user_email', 'user_phone', 'description', 'document_file')
@@ -24,6 +31,14 @@ class TypingOrderAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at', 'estimated_delivery')
         }),
     )
+    
+    def get_total_price(self, obj):
+        return f"{obj.get_total_price()} تومان"
+    get_total_price.short_description = 'Total Price (with accessories)'
+    
+    def get_accessories_total(self, obj):
+        return f"{obj.get_accessories_total()} تومان"
+    get_accessories_total.short_description = 'Accessories Total'
 
 @admin.register(TypedFile)
 class TypedFileAdmin(admin.ModelAdmin):

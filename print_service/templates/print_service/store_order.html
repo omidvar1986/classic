@@ -1,0 +1,425 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}سفارش پرینت - فروشگاه{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary">
+            <i class="fas fa-print me-3"></i>سفارش پرینت
+        </h1>
+        <p class="lead text-muted">سفارش پرینت خود را با انتخاب لوازم جانبی تکمیل کنید</p>
+    </div>
+
+    <div class="row">
+        <!-- Print Configuration -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>تنظیمات پرینت
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="printConfigForm">
+                        <div class="row">
+                            <!-- File Upload -->
+                            <div class="col-12 mb-4">
+                                <label for="files" class="form-label">فایل‌های پرینت *</label>
+                                <input type="file" class="form-control" id="files" name="files" multiple accept=".pdf,.doc,.docx,.txt" required>
+                                <div class="form-text">می‌توانید چندین فایل انتخاب کنید</div>
+                            </div>
+
+                            <!-- Print Options -->
+                            <div class="col-md-6 mb-3">
+                                <label for="color_mode" class="form-label">نوع پرینت</label>
+                                <select class="form-select" id="color_mode" name="color_mode" required>
+                                    <option value="bw">سیاه و سفید</option>
+                                    <option value="color">رنگی</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="side_type" class="form-label">نوع صفحه</label>
+                                <select class="form-select" id="side_type" name="side_type" required>
+                                    <option value="single">تک رو</option>
+                                    <option value="double">دو رو</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="paper_size" class="form-label">اندازه کاغذ</label>
+                                <select class="form-select" id="paper_size" name="paper_size" required>
+                                    <option value="A4">A4</option>
+                                    <option value="A3">A3</option>
+                                    <option value="A5">A5</option>
+                                    <option value="Letter">Letter</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="num_copies" class="form-label">تعداد نسخه</label>
+                                <input type="number" class="form-control" id="num_copies" name="num_copies" value="1" min="1" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="delivery_method" class="form-label">روش تحویل</label>
+                                <select class="form-select" id="delivery_method" name="delivery_method" required>
+                                    <option value="pickup">تحویل حضوری</option>
+                                    <option value="delivery">ارسال</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="payment_method" class="form-label">روش پرداخت</label>
+                                <select class="form-select" id="payment_method" name="payment_method" required>
+                                    <option value="online">پرداخت آنلاین</option>
+                                    <option value="cod">پرداخت در محل</option>
+                                </select>
+                            </div>
+
+                            <!-- Address for delivery -->
+                            <div class="col-12 mb-3" id="addressField" style="display: none;">
+                                <label for="address" class="form-label">آدرس تحویل</label>
+                                <textarea class="form-control" id="address" name="address" rows="3" placeholder="آدرس کامل خود را وارد کنید"></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Accessories Selection -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-tags me-2"></i>لوازم جانبی
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="accessoriesContainer">
+                        {% for accessory in accessories %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 accessory-card" data-accessory-id="{{ accessory.id }}" data-price="{{ accessory.base_price }}">
+                                <div class="position-relative">
+                                    {% if accessory.image %}
+                                    <img src="{{ accessory.image.url }}" class="card-img-top" alt="{{ accessory.name }}" style="height: 150px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                                        <i class="fas fa-image fa-2x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if accessory.is_featured %}
+                                    <div class="position-absolute top-0 start-0 m-2">
+                                        <span class="badge bg-warning">ویژه</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title">{{ accessory.name }}</h6>
+                                    <p class="card-text small text-muted">{{ accessory.description|truncatechars:80 }}</p>
+                                    
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="fw-bold text-primary">{{ accessory.base_price }} تومان</span>
+                                            <span class="badge bg-info">{{ accessory.get_category_display }}</span>
+                                        </div>
+                                        
+                                        <div class="form-check">
+                                            <input class="form-check-input accessory-checkbox" type="checkbox" 
+                                                   id="accessory_{{ accessory.id }}" 
+                                                   data-accessory-id="{{ accessory.id }}"
+                                                   data-price="{{ accessory.base_price }}">
+                                            <label class="form-check-label" for="accessory_{{ accessory.id }}">
+                                                انتخاب
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>خلاصه سفارش
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="orderSummary">
+                        <div class="mb-3">
+                            <h6>تنظیمات پرینت:</h6>
+                            <ul class="list-unstyled small text-muted" id="printSettings">
+                                <li>در حال محاسبه...</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6>لوازم جانبی انتخاب شده:</h6>
+                            <ul class="list-unstyled small" id="selectedAccessories">
+                                <li class="text-muted">هیچ لوازم جانبی انتخاب نشده</li>
+                            </ul>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>قیمت پایه:</span>
+                            <span id="basePrice">0 تومان</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>لوازم جانبی:</span>
+                            <span id="accessoriesPrice">0 تومان</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>تخفیف:</span>
+                            <span id="discount">0 تومان</span>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <strong>مجموع کل:</strong>
+                            <strong class="text-primary fs-5" id="totalPrice">0 تومان</strong>
+                        </div>
+                        
+                        <button type="button" class="btn btn-primary w-100" id="submitOrder">
+                            <i class="fas fa-check me-2"></i>ثبت سفارش
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Confirmation Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأیید سفارش</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="orderDetails">
+                    <!-- Order details will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <button type="button" class="btn btn-primary" id="confirmOrder">تأیید و ثبت سفارش</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedAccessories = [];
+let pricingData = null;
+
+// Load pricing data
+fetch('/print-service/api/pricing/')
+    .then(response => response.json())
+    .then(data => {
+        pricingData = data;
+        updateOrderSummary();
+    });
+
+// Handle delivery method change
+document.getElementById('delivery_method').addEventListener('change', function() {
+    const addressField = document.getElementById('addressField');
+    if (this.value === 'delivery') {
+        addressField.style.display = 'block';
+        document.getElementById('address').required = true;
+    } else {
+        addressField.style.display = 'none';
+        document.getElementById('address').required = false;
+    }
+});
+
+// Handle accessory selection
+document.querySelectorAll('.accessory-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const accessoryId = this.dataset.accessoryId;
+        const price = parseFloat(this.dataset.price);
+        
+        if (this.checked) {
+            selectedAccessories.push({
+                id: accessoryId,
+                price: price,
+                name: this.closest('.accessory-card').querySelector('.card-title').textContent
+            });
+        } else {
+            selectedAccessories = selectedAccessories.filter(acc => acc.id !== accessoryId);
+        }
+        
+        updateOrderSummary();
+    });
+});
+
+// Update order summary
+function updateOrderSummary() {
+    if (!pricingData) return;
+    
+    const colorMode = document.getElementById('color_mode').value;
+    const sideType = document.getElementById('side_type').value;
+    const paperSize = document.getElementById('paper_size').value;
+    const numCopies = parseInt(document.getElementById('num_copies').value);
+    
+    // Calculate base price
+    let basePrice = pricingData[paperSize + '_price'] || pricingData.base_price_per_page;
+    
+    if (colorMode === 'color') {
+        basePrice = Math.round(basePrice * pricingData.color_price_multiplier);
+    }
+    
+    if (sideType === 'double') {
+        basePrice = Math.round(basePrice * pricingData.double_sided_discount);
+    }
+    
+    const totalBasePrice = basePrice * numCopies;
+    
+    // Calculate accessories price
+    const accessoriesPrice = selectedAccessories.reduce((sum, acc) => sum + acc.price, 0);
+    
+    // Calculate discount (bulk discount)
+    let discount = 0;
+    if (numCopies >= 100) {
+        discount = Math.round(totalBasePrice * (1 - pricingData.bulk_discount_100));
+    } else if (numCopies >= 50) {
+        discount = Math.round(totalBasePrice * (1 - pricingData.bulk_discount_50));
+    } else if (numCopies >= 10) {
+        discount = Math.round(totalBasePrice * (1 - pricingData.bulk_discount_10));
+    }
+    
+    const totalPrice = totalBasePrice + accessoriesPrice - discount;
+    
+    // Update display
+    document.getElementById('basePrice').textContent = totalBasePrice.toLocaleString() + ' تومان';
+    document.getElementById('accessoriesPrice').textContent = accessoriesPrice.toLocaleString() + ' تومان';
+    document.getElementById('discount').textContent = discount.toLocaleString() + ' تومان';
+    document.getElementById('totalPrice').textContent = totalPrice.toLocaleString() + ' تومان';
+    
+    // Update print settings
+    const printSettings = document.getElementById('printSettings');
+    printSettings.innerHTML = `
+        <li>نوع: ${colorMode === 'color' ? 'رنگی' : 'سیاه و سفید'}</li>
+        <li>صفحه: ${sideType === 'double' ? 'دو رو' : 'تک رو'}</li>
+        <li>اندازه: ${paperSize}</li>
+        <li>تعداد: ${numCopies} نسخه</li>
+    `;
+    
+    // Update selected accessories
+    const selectedAccessoriesList = document.getElementById('selectedAccessories');
+    if (selectedAccessories.length > 0) {
+        selectedAccessoriesList.innerHTML = selectedAccessories.map(acc => 
+            `<li>${acc.name} - ${acc.price.toLocaleString()} تومان</li>`
+        ).join('');
+    } else {
+        selectedAccessoriesList.innerHTML = '<li class="text-muted">هیچ لوازم جانبی انتخاب نشده</li>';
+    }
+}
+
+// Add event listeners for form changes
+['color_mode', 'side_type', 'paper_size', 'num_copies'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateOrderSummary);
+});
+
+// Submit order
+document.getElementById('submitOrder').addEventListener('click', function() {
+    // Validate form
+    const form = document.getElementById('printConfigForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Show order confirmation modal
+    const orderDetails = document.getElementById('orderDetails');
+    orderDetails.innerHTML = `
+        <div class="alert alert-info">
+            <h6>جزئیات سفارش:</h6>
+            <ul>
+                <li>نوع پرینت: ${document.getElementById('color_mode').value === 'color' ? 'رنگی' : 'سیاه و سفید'}</li>
+                <li>نوع صفحه: ${document.getElementById('side_type').value === 'double' ? 'دو رو' : 'تک رو'}</li>
+                <li>اندازه کاغذ: ${document.getElementById('paper_size').value}</li>
+                <li>تعداد نسخه: ${document.getElementById('num_copies').value}</li>
+                <li>روش تحویل: ${document.getElementById('delivery_method').value === 'delivery' ? 'ارسال' : 'تحویل حضوری'}</li>
+                <li>روش پرداخت: ${document.getElementById('payment_method').value === 'online' ? 'پرداخت آنلاین' : 'پرداخت در محل'}</li>
+            </ul>
+            <hr>
+            <strong>مجموع کل: ${document.getElementById('totalPrice').textContent}</strong>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('orderModal'));
+    modal.show();
+});
+
+// Confirm order
+document.getElementById('confirmOrder').addEventListener('click', function() {
+    // Collect form data
+    const formData = new FormData();
+    formData.append('color_mode', document.getElementById('color_mode').value);
+    formData.append('side_type', document.getElementById('side_type').value);
+    formData.append('paper_size', document.getElementById('paper_size').value);
+    formData.append('num_copies', document.getElementById('num_copies').value);
+    formData.append('delivery_method', document.getElementById('delivery_method').value);
+    formData.append('payment_method', document.getElementById('payment_method').value);
+    
+    if (document.getElementById('delivery_method').value === 'delivery') {
+        formData.append('address', document.getElementById('address').value);
+    }
+    
+    // Add files
+    const files = document.getElementById('files').files;
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+    
+    // Add accessories
+    selectedAccessories.forEach(acc => {
+        formData.append('accessories', acc.id);
+    });
+    
+    // Submit order
+    fetch('/print-service/store-order/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('خطا در ثبت سفارش: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('خطا در ارتباط با سرور');
+    });
+});
+
+// Initialize
+updateOrderSummary();
+</script>
+{% endblock %} 

@@ -7,21 +7,33 @@ from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.csrf import csrf_exempt
 from print_service.models import PrintOrder
 from typing_service.models import TypingOrder
 
 # Create your views here.
 
 # Login view
-
+@csrf_exempt
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        
+        # Try to authenticate with email as username first
         user = authenticate(request, username=email, password=password)
+        
+        # If that fails, try to find user by email and authenticate with username
+        if user is None:
+            try:
+                user_obj = User.objects.get(email=email)
+                user = authenticate(request, username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                user = None
+        
         if user is not None:
             login(request, user)
             return redirect('accounts:dashboard')
@@ -106,3 +118,15 @@ def user_dashboard(request):
         'typing_orders': typing_orders,
         'user': user,
     })
+
+def staff_required(view_func):
+    return user_passes_test(lambda u: u.is_staff or u.is_superuser)(view_func)
+
+@staff_required
+def admin_dashboard(request):
+    return render(request, 'accounts/admin_dashboard.html')
+
+@staff_required
+def user_management(request):
+    # Redirect to the comprehensive user management in admin_dashboard app
+    return redirect('admin_dashboard:user_management')

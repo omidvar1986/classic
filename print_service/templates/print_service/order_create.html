@@ -74,6 +74,113 @@
                         {{ order_form.num_copies }}
                         {{ order_form.num_copies.errors }}
                     </div>
+                    
+                    <!-- Accessories & Finishing Options -->
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-tools me-2"></i>{% trans "Accessories & Finishing Options" %}
+                    </h5>
+                    <div class="accessories-section mb-4">
+                        <!-- Package Deals -->
+                        <div class="package-deals mb-4" id="package-deals" style="display: none;">
+                            <h6 class="text-success mb-3">
+                                <i class="fas fa-gift me-2"></i>{% trans "Special Package Deals" %}
+                            </h6>
+                            <div class="row" id="package-deals-container">
+                                <!-- Package deals will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Accessories by Category -->
+                        <div class="accessories-categories">
+                            {% for category, accessories in accessories_by_category.items %}
+                            <div class="accessory-category mb-4">
+                                <h6 class="category-title mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    {% if category == 'binding' %}
+                                        {% trans "Binding Options" %}
+                                    {% elif category == 'finishing' %}
+                                        {% trans "Finishing Options" %}
+                                    {% elif category == 'packaging' %}
+                                        {% trans "Packaging Options" %}
+                                    {% else %}
+                                        {{ category|title }}
+                                    {% endif %}
+                                </h6>
+                                <div class="row">
+                                    {% for accessory in accessories %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="accessory-card border rounded p-3 h-100">
+                                            <div class="form-check">
+                                                <input class="form-check-input accessory-checkbox" 
+                                                       type="checkbox" 
+                                                       id="accessory_{{ accessory.id }}"
+                                                       data-accessory-id="{{ accessory.id }}"
+                                                       data-price="{{ accessory.base_price }}"
+                                                       data-category="{{ accessory.category }}"
+                                                       data-icon="{{ accessory.icon }}">
+                                                <label class="form-check-label w-100" for="accessory_{{ accessory.id }}">
+                                                    <div class="accessory-info">
+                                                        <div class="accessory-header d-flex justify-content-between align-items-start mb-2">
+                                                            <div>
+                                                                <i class="{{ accessory.icon }} me-2 text-primary"></i>
+                                                                <strong>{{ accessory.name }}</strong>
+                                                            </div>
+                                                            <span class="price-badge badge bg-success">+{{ accessory.base_price|floatformat:0 }} تومان</span>
+                                                        </div>
+                                                        <div class="accessory-description text-muted small mb-2">
+                                                            {{ accessory.description }}
+                                                        </div>
+                                                        <div class="quantity-selector" style="display: none;">
+                                                            <div class="d-flex align-items-center">
+                                                                <label class="form-label me-2 mb-0">{% trans "Quantity:" %}</label>
+                                                                <input type="number" 
+                                                                       class="form-control form-control-sm accessory-quantity" 
+                                                                       data-accessory-id="{{ accessory.id }}"
+                                                                       value="1" min="1" max="10" style="width: 80px;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Price Summary -->
+                        <div class="price-summary mt-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-calculator me-2"></i>{% trans "Price Summary" %}
+                                    </h6>
+                                    <div class="price-breakdown">
+                                        <div class="price-row d-flex justify-content-between">
+                                            <span>{% trans "Base Price:" %}</span>
+                                            <span id="base-price">50,000 تومان</span>
+                                        </div>
+                                        <div class="price-row d-flex justify-content-between" id="accessories-price-row" style="display: none;">
+                                            <span>{% trans "Accessories:" %}</span>
+                                            <span id="accessories-price">0 تومان</span>
+                                        </div>
+                                        <div class="price-row d-flex justify-content-between package-discount" id="package-discount-row" style="display: none;">
+                                            <span>{% trans "Package Discount:" %}</span>
+                                            <span id="package-discount" class="text-success">-0 تومان</span>
+                                        </div>
+                                        <hr>
+                                        <div class="price-row d-flex justify-content-between total">
+                                            <span><strong>{% trans "Total:" %}</strong></span>
+                                            <span id="total-price"><strong>50,000 تومان</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- File Upload -->
                     <h5 class="mt-4 mb-3">{% trans "Upload File" %}</h5>
                     <div class="mb-3">
@@ -119,6 +226,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const deliveryMethod = document.getElementById('{{ order_form.delivery_method.id_for_label }}');
     const addressField = document.getElementById('address-field');
+    
     function toggleAddress() {
         if (deliveryMethod && deliveryMethod.value === 'delivery') {
             addressField.style.display = 'block';
@@ -126,14 +234,104 @@ document.addEventListener('DOMContentLoaded', function () {
             addressField.style.display = 'none';
         }
     }
+    
     if (deliveryMethod) {
         deliveryMethod.addEventListener('change', toggleAddress);
         toggleAddress();
     }
+    
+    // Accessories functionality
+    const accessoryCheckboxes = document.querySelectorAll('.accessory-checkbox');
+    const accessoryQuantities = document.querySelectorAll('.accessory-quantity');
+    const basePriceElement = document.getElementById('base-price');
+    const accessoriesPriceElement = document.getElementById('accessories-price');
+    const accessoriesPriceRow = document.getElementById('accessories-price-row');
+    const packageDiscountElement = document.getElementById('package-discount');
+    const packageDiscountRow = document.getElementById('package-discount-row');
+    const totalPriceElement = document.getElementById('total-price');
+    
+    let basePrice = {{ base_price|default:50000 }}; // Base price in Tomans
+    let accessoriesTotal = 0;
+    let packageDiscount = 0;
+    
+    function formatPrice(price) {
+        return price.toLocaleString('fa-IR') + ' تومان';
+    }
+    
+    function updatePriceSummary() {
+        const total = basePrice + accessoriesTotal - packageDiscount;
+        
+        if (basePriceElement) basePriceElement.textContent = formatPrice(basePrice);
+        if (accessoriesPriceElement) accessoriesPriceElement.textContent = formatPrice(accessoriesTotal);
+        if (packageDiscountElement) packageDiscountElement.textContent = '-' + formatPrice(packageDiscount);
+        if (totalPriceElement) totalPriceElement.innerHTML = `<strong>${formatPrice(total)}</strong>`;
+        
+        // Show/hide accessories price row
+        if (accessoriesPriceRow) {
+            accessoriesPriceRow.style.display = accessoriesTotal > 0 ? 'block' : 'none';
+        }
+        
+        // Show/hide package discount row
+        if (packageDiscountRow) {
+            packageDiscountRow.style.display = packageDiscount > 0 ? 'block' : 'none';
+        }
+    }
+    
+    function calculateAccessoriesTotal() {
+        accessoriesTotal = 0;
+        accessoryCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const price = parseFloat(checkbox.dataset.price) || 0;
+                const accessoryId = checkbox.dataset.accessoryId;
+                const quantityInput = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+                const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+                accessoriesTotal += price * quantity;
+            }
+        });
+        updatePriceSummary();
+    }
+    
+    // Handle accessory checkbox changes
+    accessoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const accessoryId = this.dataset.accessoryId;
+            const quantitySelector = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+            const accessoryCard = this.closest('.accessory-card');
+            
+            if (this.checked) {
+                if (quantitySelector) {
+                    quantitySelector.parentElement.style.display = 'block';
+                }
+                if (accessoryCard) {
+                    accessoryCard.classList.add('selected');
+                }
+            } else {
+                if (quantitySelector) {
+                    quantitySelector.parentElement.style.display = 'none';
+                    quantitySelector.value = 1;
+                }
+                if (accessoryCard) {
+                    accessoryCard.classList.remove('selected');
+                }
+            }
+            calculateAccessoriesTotal();
+        });
+    });
+    
+    // Handle quantity changes
+    accessoryQuantities.forEach(quantityInput => {
+        quantityInput.addEventListener('change', calculateAccessoriesTotal);
+        quantityInput.addEventListener('input', calculateAccessoriesTotal);
+    });
+    
+    // Initialize price summary
+    updatePriceSummary();
+    
     // Spinner on submit
     const form = document.getElementById('orderForm');
     const submitBtn = document.getElementById('submitBtn');
     const spinner = document.getElementById('spinner');
+    
     if (form) {
         form.addEventListener('submit', function(e) {
             // Client-side file validation
@@ -153,6 +351,28 @@ document.addEventListener('DOMContentLoaded', function () {
                     return false;
                 }
             }
+            
+            // Collect selected accessories data
+            const selectedAccessories = [];
+            accessoryCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const accessoryId = checkbox.dataset.accessoryId;
+                    const quantityInput = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+                    const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+                    selectedAccessories.push({
+                        id: accessoryId,
+                        quantity: quantity
+                    });
+                }
+            });
+            
+            // Add accessories data to form
+            const accessoriesInput = document.createElement('input');
+            accessoriesInput.type = 'hidden';
+            accessoriesInput.name = 'selected_accessories';
+            accessoriesInput.value = JSON.stringify(selectedAccessories);
+            form.appendChild(accessoriesInput);
+            
             submitBtn.disabled = true;
             spinner.classList.remove('d-none');
         });

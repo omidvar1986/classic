@@ -1,0 +1,206 @@
+{% extends 'admin_dashboard/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Edit User" %} - {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-form {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .back-button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+    .user-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'admin_dashboard:user_detail' user.id %}" class="btn back-button">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to User Details" %}
+        </a>
+    </div>
+
+    <!-- User Info Header -->
+    <div class="user-info">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-2">
+                    {% if user.first_name and user.last_name %}
+                        {{ user.first_name }} {{ user.last_name }}
+                    {% else %}
+                        {{ user.username }}
+                    {% endif %}
+                </h3>
+                <p class="mb-1">{{ user.email }}</p>
+                <p class="mb-0">@{{ user.username }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-2">
+                    {% if user.is_superuser %}
+                        <span class="badge bg-warning">{% trans "Superuser" %}</span>
+                    {% elif user.is_staff %}
+                        <span class="badge bg-success">{% trans "Staff" %}</span>
+                    {% endif %}
+                    {% if not user.is_active %}
+                        <span class="badge bg-danger">غیرفعال</span>
+                    {% endif %}
+                </div>
+                <small>{% trans "Joined" %}: {{ user.date_joined|date:"M d, Y" }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="edit-form">
+                <h4 class="mb-4">
+                    <i class="fas fa-edit me-2"></i>{% trans "Edit User Information" %}
+                </h4>
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.username.id_for_label }}" class="form-label">
+                                    {% trans "Username" %}
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.username.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    {% trans "Email" %}
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.email.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                    {% trans "First Name" %}
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.first_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                    {% trans "Last Name" %}
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.last_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        فعال
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans "Designates whether this user should be treated as active." %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    {{ form.is_staff }}
+                                    <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                        {% trans "Staff status" %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans "Designates whether the user can log into this admin site." %}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div class="form-check">
+                                    {{ form.is_superuser }}
+                                    <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                        {% trans "Superuser status" %}
+                                    </label>
+                                </div>
+                                <small class="text-muted">{% trans "Designates that this user has all permissions without explicitly assigning them." %}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.date_joined.id_for_label }}" class="form-label">
+                            {% trans "Date joined" %}
+                        </label>
+                        {{ form.date_joined }}
+                        {% if form.date_joined.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.date_joined.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                        </button>
+                        <a href="{% url 'admin_dashboard:user_detail' user.id %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i>لغو
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

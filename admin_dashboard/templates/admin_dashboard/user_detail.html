@@ -1,0 +1,269 @@
+{% extends 'admin_dashboard/dashboard.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "User Details" %} - {{ user_detail.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .stats-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+    .order-card {
+        border-left: 4px solid #007bff;
+        transition: all 0.3s ease;
+    }
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .order-card.print {
+        border-left-color: #28a745;
+    }
+    .order-card.typing {
+        border-left-color: #ffc107;
+    }
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .back-button {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .back-button:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Back Button -->
+    <div class="mb-3">
+        <a href="{% url 'admin_dashboard:user_management' %}" class="btn back-button">
+            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to User Management" %}
+        </a>
+    </div>
+
+    <!-- User Header -->
+    <div class="user-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2 class="mb-2">
+                    {% if user_detail.first_name and user_detail.last_name %}
+                        {{ user_detail.first_name }} {{ user_detail.last_name }}
+                    {% else %}
+                        {{ user_detail.username }}
+                    {% endif %}
+                </h2>
+                <p class="mb-1">{{ user_detail.email }}</p>
+                <p class="mb-0">@{{ user_detail.username }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="mb-2">
+                    {% if user_detail.is_superuser %}
+                        <span class="badge bg-warning">{% trans "Superuser" %}</span>
+                    {% elif user_detail.is_staff %}
+                        <span class="badge bg-success">{% trans "Staff" %}</span>
+                    {% endif %}
+                    {% if not user_detail.is_active %}
+                        <span class="badge bg-danger">غیرفعال</span>
+                    {% endif %}
+                </div>
+                <small>{% trans "Joined" %}: {{ user_detail.date_joined|date:"M d, Y" }}</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-primary">{{ total_print_orders }}</h3>
+                <p class="mb-0">{% trans "Print Orders" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-warning">{{ total_typing_orders }}</h3>
+                <p class="mb-0">{% trans "Typing Orders" %}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-success">{{ total_print_orders|add:total_typing_orders }}</h3>
+                <p class="mb-0">کل سفارشات</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3 class="text-info">${{ total_spent|floatformat:2 }}</h3>
+                <p class="mb-0">{% trans "Total Spent" %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{% trans "User Actions" %}</h5>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'admin_dashboard:edit_user' user_detail.id %}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>{% trans "Edit User" %}
+                        </a>
+                        
+                        {% if user_detail != request.user %}
+                            <form method="post" action="{% url 'admin_dashboard:toggle_user_status' user_detail.id %}" 
+                                  style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if user_detail.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                    <i class="fas {% if user_detail.is_active %}fa-user-slash{% else %}fa-user-check{% endif %} me-2"></i>
+                                    {% if user_detail.is_active %}{% trans "Deactivate User" %}{% else %}{% trans "Activate User" %}{% endif %}
+                                </button>
+                            </form>
+                            
+                            <form method="post" action="{% url 'admin_dashboard:toggle_staff_status' user_detail.id %}" 
+                                  style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if user_detail.is_staff %}btn-warning{% else %}btn-info{% endif %}">
+                                    <i class="fas {% if user_detail.is_staff %}fa-user-minus{% else %}fa-user-plus{% endif %} me-2"></i>
+                                    {% if user_detail.is_staff %}{% trans "Remove Staff Status" %}{% else %}{% trans "Make Staff" %}{% endif %}
+                                </button>
+                            </form>
+                            
+                            <form method="post" action="{% url 'admin_dashboard:delete_user' user_detail.id %}" 
+                                  style="display: inline;" 
+                                  onsubmit="return confirm('{% trans 'Are you sure you want to delete this user? This action cannot be undone.' %}')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash me-2"></i>{% trans "Delete User" %}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders History -->
+    <div class="row">
+        <!-- Print Orders -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-print me-2"></i>{% trans "Print Orders" %}
+                        <span class="badge bg-primary ms-2">{{ print_orders.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if print_orders %}
+                        {% for order in print_orders %}
+                        <div class="card order-card print mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">سفارش #{{ order.id }}</h6>
+                                        <p class="text-muted mb-1">{{ order.name }}</p>
+                                        <small class="text-muted">{{ order.created_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge status-badge 
+                                            {% if order.status == 'completed' %}bg-success
+                                            {% elif order.status == 'processing' %}bg-warning
+                                            {% elif order.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                        {% if order.total_price %}
+                                            <div class="mt-1">
+                                                <strong>${{ order.total_price|floatformat:2 }}</strong>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-print fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">{% trans "No print orders found" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Orders -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-keyboard me-2"></i>{% trans "Typing Orders" %}
+                        <span class="badge bg-warning ms-2">{{ typing_orders.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if typing_orders %}
+                        {% for order in typing_orders %}
+                        <div class="card order-card typing mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">سفارش #{{ order.id }}</h6>
+                                        <p class="text-muted mb-1">{{ order.user_name }}</p>
+                                        <small class="text-muted">{{ order.created_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge status-badge 
+                                            {% if order.status == 'completed' %}bg-success
+                                            {% elif order.status == 'in_progress' %}bg-warning
+                                            {% elif order.status == 'rejected' %}bg-danger
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                        {% if order.total_price %}
+                                            <div class="mt-1">
+                                                <strong>${{ order.total_price|floatformat:2 }}</strong>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-keyboard fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">{% trans "No typing orders found" %}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

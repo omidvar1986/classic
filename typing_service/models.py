@@ -50,6 +50,28 @@ class TypingOrder(models.Model):
 
     def __str__(self):
         return f"Typing Order #{self.id} - {self.user_name}"
+    
+    def get_total_price(self):
+        """Get total price including accessories"""
+        base_price = self.total_price if hasattr(self, 'total_price') else 0
+        accessories_price = sum(acc.price for acc in self.accessories.all())
+        return base_price + accessories_price
+    
+    def get_accessories_total(self):
+        """Get total price of accessories only"""
+        return sum(acc.price for acc in self.accessories.all())
+    
+    def get_accessories_list(self):
+        """Get list of accessories with details"""
+        return [
+            {
+                'name': acc.accessory.name,
+                'quantity': acc.quantity,
+                'price': acc.price,
+                'category': acc.accessory.get_category_display()
+            }
+            for acc in self.accessories.all()
+        ]
 
 
 class TypedFile(models.Model):
@@ -64,9 +86,26 @@ class TypedFile(models.Model):
 class TypingPriceSettings(models.Model):
     price_per_page = models.PositiveIntegerField(
         _('Price per Page'),
-        default=1000,
-        help_text=_("The default price per page for a standard typing order.")
+        default=100000,
+        help_text=_("قیمت پایه هر صفحه (تومان)")
     )
+    
+    # Additional pricing options
+    urgent_price_multiplier = models.DecimalField(
+        max_digits=3,
+        decimal_places=2,
+        default=1.5,
+        help_text=_("ضریب قیمت برای تایپ فوری (1.5 = 50% گران‌تر)")
+    )
+    
+    # Bulk discounts
+    bulk_discount_5 = models.DecimalField(max_digits=3, decimal_places=2, default=0.95, help_text=_("تخفیف برای 5+ صفحه"))
+    bulk_discount_10 = models.DecimalField(max_digits=3, decimal_places=2, default=0.90, help_text=_("تخفیف برای 10+ صفحه"))
+    bulk_discount_20 = models.DecimalField(max_digits=3, decimal_places=2, default=0.85, help_text=_("تخفیف برای 20+ صفحه"))
+    
+    # Delivery options
+    email_delivery_price = models.PositiveIntegerField(default=0, help_text=_("هزینه تحویل از طریق ایمیل"))
+    print_delivery_price = models.PositiveIntegerField(default=50000, help_text=_("هزینه تحویل چاپی"))
 
     def __str__(self):
         return _("Typing Pricing Settings")
@@ -74,3 +113,22 @@ class TypingPriceSettings(models.Model):
     class Meta:
         verbose_name = _("Typing Pricing Settings")
         verbose_name_plural = _("Typing Pricing Settings")
+
+
+class TypingOrderAccessory(models.Model):
+    """Accessories selected for a typing order"""
+    order = models.ForeignKey(TypingOrder, on_delete=models.CASCADE, related_name='accessories')
+    accessory = models.ForeignKey('print_service.Accessory', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    class Meta:
+        unique_together = ['order', 'accessory']
+    
+    def __str__(self):
+        return f"{self.order.id} - {self.accessory.name} (x{self.quantity})"
+    
+    def save(self, *args, **kwargs):
+        if not self.price:
+            self.price = self.accessory.base_price * self.quantity
+        super().save(*args, **kwargs)

@@ -1,0 +1,279 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}
+    {% if action == 'add' %}
+        {% trans "Add New Package Deal" %}
+    {% else %}
+        {% trans "Edit Package Deal" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-gift me-2"></i>
+                    {% if action == 'add' %}
+                        {% trans "Add New Package Deal" %}
+                    {% else %}
+                        {% trans "Edit Package Deal" %}
+                    {% endif %}
+                </h2>
+                <a href="{% url 'admin_dashboard:packages' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Packages" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        {% if action == 'add' %}
+                            {% trans "Package Deal Information" %}
+                        {% else %}
+                            {% trans "Edit Package Deal Information" %}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Name -->
+                        <div class="mb-4">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                <strong>{{ form.name.label }}</strong>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">{{ form.name.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                <strong>{{ form.description.label }}</strong>
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">{{ form.description.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Pricing Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.original_price.id_for_label }}" class="form-label">
+                                        <strong>{{ form.original_price.label }}</strong>
+                                    </label>
+                                    {{ form.original_price }}
+                                    {% if form.original_price.errors %}
+                                        <div class="text-danger small mt-1">{{ form.original_price.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.discount_price.id_for_label }}" class="form-label">
+                                        <strong>{{ form.discount_price.label }}</strong>
+                                    </label>
+                                    {{ form.discount_price }}
+                                    {% if form.discount_price.errors %}
+                                        <div class="text-danger small mt-1">{{ form.discount_price.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service Type and Status Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.service_type.id_for_label }}" class="form-label">
+                                        <strong>{{ form.service_type.label }}</strong>
+                                    </label>
+                                    {{ form.service_type }}
+                                    {% if form.service_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.service_type.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            <strong>{{ form.is_active.label }}</strong>
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="text-danger small mt-1">{{ form.is_active.errors.as_text }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accessories -->
+                        <div class="mb-4">
+                            <label for="{{ form.accessories.id_for_label }}" class="form-label">
+                                <strong>{{ form.accessories.label }}</strong>
+                            </label>
+                            {{ form.accessories }}
+                            {% if form.accessories.errors %}
+                                <div class="text-danger small mt-1">{{ form.accessories.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                {% if action == 'add' %}
+                                    {% trans "Create Package Deal" %}
+                                {% else %}
+                                    {% trans "Update Package Deal" %}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help and Preview -->
+        <div class="col-lg-4">
+            <!-- Savings Calculator -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>{% trans "Savings Calculator" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">{% trans "Original Price:" %}</small>
+                            <div class="fw-bold" id="originalPriceDisplay">0 تومان</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">{% trans "Package Price:" %}</small>
+                            <div class="fw-bold text-success" id="discountPriceDisplay">0 تومان</div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-12">
+                            <small class="text-muted">{% trans "Total Savings:" %}</small>
+                            <div class="fw-bold text-danger" id="savingsDisplay">0 تومان</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Information -->
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>{% trans "Help" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6>{% trans "Package Deal Guidelines:" %}</h6>
+                        <ul class="mb-0">
+                            <li><strong>{% trans "Name:" %}</strong> {% trans "Attractive name for the package deal" %}</li>
+                            <li><strong>{% trans "Description:" %}</strong> {% trans "What's included in this package" %}</li>
+                            <li><strong>{% trans "Original Price:" %}</strong> {% trans "Sum of individual accessory prices" %}</li>
+                            <li><strong>{% trans "Package Price:" %}</strong> {% trans "Discounted price for the package" %}</li>
+                            <li><strong>{% trans "Service Type:" %}</strong> {% trans "Which services can use this package" %}</li>
+                            <li><strong>{% trans "Accessories:" %}</strong> {% trans "Select accessories included in this package" %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Accessories -->
+            <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-tools me-2"></i>{% trans "Available Accessories" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <select id="accessorySelector" class="form-control mb-2">
+                                <option value="">{% trans "Select an accessory to see details" %}</option>
+                            </select>
+                            <div id="accessoryDetails" class="small text-muted">
+                                {% trans "Select an accessory to view its details and price" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const originalPriceInput = document.getElementById('{{ form.original_price.id_for_label }}');
+    const discountPriceInput = document.getElementById('{{ form.discount_price.id_for_label }}');
+    const accessorySelector = document.getElementById('accessorySelector');
+    const accessoryDetails = document.getElementById('accessoryDetails');
+    
+    // Load available accessories
+    fetch('/admin-panel/accessories/api/list/')
+        .then(response => response.json())
+        .then(data => {
+            data.accessories.forEach(accessory => {
+                const option = document.createElement('option');
+                option.value = accessory.id;
+                option.textContent = `${accessory.name} (${accessory.base_price} تومان)`;
+                option.dataset.price = accessory.base_price;
+                option.dataset.description = accessory.description;
+                accessorySelector.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading accessories:', error);
+        });
+    
+    function updateSavingsCalculator() {
+        const originalPrice = parseFloat(originalPriceInput.value) || 0;
+        const discountPrice = parseFloat(discountPriceInput.value) || 0;
+        const savings = originalPrice - discountPrice;
+        
+        document.getElementById('originalPriceDisplay').textContent = Math.round(originalPrice).toLocaleString() + ' تومان';
+        document.getElementById('discountPriceDisplay').textContent = Math.round(discountPrice).toLocaleString() + ' تومان';
+        document.getElementById('savingsDisplay').textContent = Math.round(savings).toLocaleString() + ' تومان';
+    }
+    
+    function updateAccessoryDetails() {
+        const selectedOption = accessorySelector.options[accessorySelector.selectedIndex];
+        if (selectedOption.value) {
+            const price = selectedOption.dataset.price;
+            const description = selectedOption.dataset.description;
+            accessoryDetails.innerHTML = `
+                <strong>${selectedOption.textContent}</strong><br>
+                <small>${description}</small>
+            `;
+        } else {
+            accessoryDetails.textContent = '{% trans "Select an accessory to view its details and price" %}';
+        }
+    }
+    
+    // Update calculator when inputs change
+    originalPriceInput.addEventListener('input', updateSavingsCalculator);
+    discountPriceInput.addEventListener('input', updateSavingsCalculator);
+    accessorySelector.addEventListener('change', updateAccessoryDetails);
+    
+    // Initial updates
+    updateSavingsCalculator();
+    updateAccessoryDetails();
+});
+</script>
+{% endblock %} 

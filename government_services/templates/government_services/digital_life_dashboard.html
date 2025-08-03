@@ -1,0 +1,423 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Digital Life Assistant" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section with Welcome Message -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0 shadow-lg">
+                <div class="card-body text-center py-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-4 mb-3 animate__animated animate__fadeInUp">
+                                <i class="fas fa-magic me-3"></i>{% trans "Digital Life Assistant" %}
+                            </h1>
+                            {% if user.is_authenticated %}
+                                <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+                                    {% trans "Welcome back" %}, <strong>{{ user.first_name|default:user.username }}</strong>! 
+                                    {% trans "What can I help you with today?" %}
+                                </p>
+                                <div class="row text-center animate__animated animate__fadeInUp animate__delay-2s">
+                                    <div class="col-md-4">
+                                        <div class="bg-white bg-opacity-25 rounded p-3 mb-3">
+                                            <h3 class="text-white mb-0">{{ total_requests }}</h3>
+                                            <small>{% trans "Total Requests" %}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bg-white bg-opacity-25 rounded p-3 mb-3">
+                                            <h3 class="text-white mb-0">{{ completed_requests }}</h3>
+                                            <small>{% trans "Completed" %}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="bg-white bg-opacity-25 rounded p-3 mb-3">
+                                            <h3 class="text-white mb-0">{{ profile.points }}</h3>
+                                            <small>{% trans "Points" %} ({% trans "Level" %} {{ profile.level }})</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="lead mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+                                    {% trans "Your personal assistant for all digital services and registrations. Get things done faster and easier!" %}
+                                </p>
+                                <div class="animate__animated animate__fadeInUp animate__delay-2s">
+                                    <a href="{% url 'accounts:login' %}" class="btn btn-light btn-lg me-3">
+                                        <i class="fas fa-sign-in-alt me-2"></i>{% trans "Sign In" %}
+                                    </a>
+                                    <a href="{% url 'accounts:register' %}" class="btn btn-outline-light btn-lg">
+                                        <i class="fas fa-user-plus me-2"></i>{% trans "Register" %}
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-4 d-none d-lg-block">
+                            <div class="text-center animate__animated animate__fadeInRight animate__delay-1s">
+                                <i class="fas fa-robot fa-8x text-white-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+        <!-- Quick Actions Section -->
+        {% if quick_actions %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bolt text-warning me-2"></i>{% trans "Quick Actions" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for action in quick_actions %}
+                            <div class="col-md-4 col-lg-2 mb-3">
+                                <a href="{% url 'government_services:quick_action' action.id %}" 
+                                   class="text-decoration-none">
+                                    <div class="card h-100 border-0 shadow-sm quick-action-card text-center">
+                                        <div class="card-body p-3">
+                                            <div class="mb-2">
+                                                <i class="{{ action.icon }} fa-2x text-{{ action.color }}"></i>
+                                            </div>
+                                            <h6 class="card-title mb-1">{{ action.name }}</h6>
+                                            <small class="text-muted">{{ action.description|truncatechars:50 }}</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Active Requests Section -->
+        {% if active_requests %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock text-info me-2"></i>{% trans "Active Requests" %}
+                            </h5>
+                            <a href="{% url 'government_services:my_dashboard' %}" class="btn btn-sm btn-outline-primary">
+                                {% trans "View All" %}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for request in active_requests %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">{{ request.service.name }}</h6>
+                                            <span class="badge bg-{{ request.service.category.color }}">
+                                                {{ request.get_status_display }}
+                                            </span>
+                                        </div>
+                                        <p class="card-text small text-muted">{{ request.title }}</p>
+                                        
+                                        <!-- Progress Bar -->
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <small class="text-muted">{% trans "Progress" %}</small>
+                                                <small class="text-muted">{{ request.progress_percentage }}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-{{ request.service.category.color }}" 
+                                                     role="progressbar" 
+                                                     style="width: {{ request.progress_percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar me-1"></i>{{ request.created_at|date:"M d" }}
+                                            </small>
+                                            <a href="{% url 'government_services:track_request' request.request_id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                {% trans "Track" %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Life Events Section -->
+        {% if life_events %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heart text-danger me-2"></i>{% trans "Life Events" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for event in life_events %}
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <a href="{% url 'government_services:life_event_services' event.id %}" 
+                                   class="text-decoration-none">
+                                    <div class="card h-100 border-0 shadow-sm life-event-card text-center">
+                                        <div class="card-body p-4">
+                                            <div class="mb-3">
+                                                <i class="{{ event.icon }} fa-3x text-{{ event.color }}"></i>
+                                            </div>
+                                            <h6 class="card-title">{{ event.name }}</h6>
+                                            <p class="card-text small text-muted">{{ event.description|truncatechars:80 }}</p>
+                                            <span class="badge bg-{{ event.color }}">{{ event.services.count }} {% trans "services" %}</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recommended Services -->
+        {% if recommended_services %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star text-warning me-2"></i>{% trans "Recommended for You" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for service in recommended_services %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm service-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">{{ service.name }}</h6>
+                                            {% if service.is_new %}
+                                            <span class="badge bg-success">{% trans "NEW" %}</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="card-text small text-muted">{{ service.short_description|default:service.description|truncatechars:100 }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <span class="badge bg-{{ service.category.color }} me-1">{{ service.category.name }}</span>
+                                            <span class="badge bg-secondary">{{ service.get_difficulty_display }}</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ service.estimated_time }}
+                                            </small>
+                                            <a href="{% url 'government_services:service_detail' service.id %}" 
+                                               class="btn btn-sm btn-primary">
+                                                {% trans "View" %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Public Dashboard for Non-Authenticated Users -->
+        
+        <!-- Featured Services -->
+        {% if featured_services %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-star text-warning me-2"></i>{% trans "Featured Services" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for service in featured_services %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 border-0 shadow-sm service-card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="card-title mb-0">{{ service.name }}</h6>
+                                            <i class="fas fa-star text-warning"></i>
+                                        </div>
+                                        <p class="card-text small text-muted">{{ service.short_description|default:service.description|truncatechars:100 }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <span class="badge bg-{{ service.category.color }} me-1">{{ service.category.name }}</span>
+                                            <span class="badge bg-secondary">{{ service.get_difficulty_display }}</span>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>{{ service.estimated_time }}
+                                            </small>
+                                            <a href="{% url 'government_services:service_detail' service.id %}" 
+                                               class="btn btn-sm btn-primary">
+                                                {% trans "View" %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Life Events for Public -->
+        {% if life_events %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heart text-danger me-2"></i>{% trans "Life Events" %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for event in life_events %}
+                            <div class="col-md-6 col-lg-3 mb-3">
+                                <div class="card h-100 border-0 shadow-sm life-event-card text-center">
+                                    <div class="card-body p-4">
+                                        <div class="mb-3">
+                                            <i class="{{ event.icon }} fa-3x text-{{ event.color }}"></i>
+                                        </div>
+                                        <h6 class="card-title">{{ event.name }}</h6>
+                                        <p class="card-text small text-muted">{{ event.description|truncatechars:80 }}</p>
+                                        <span class="badge bg-{{ event.color }}">{{ event.services.count }} {% trans "services" %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Notifications Section -->
+    {% if notifications %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell text-info me-2"></i>{% trans "Latest Updates" %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for notification in notifications %}
+                    <div class="alert alert-{{ notification.color }} border-0 mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="{{ notification.icon }} me-2"></i>
+                            <div>
+                                <strong>{{ notification.title }}</strong>
+                                <p class="mb-0 small">{{ notification.message }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.quick-action-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.quick-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.service-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.service-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.life-event-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 12px;
+}
+
+.life-event-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.progress-bar {
+    border-radius: 10px;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.animate__animated {
+    animation-duration: 1s;
+}
+
+.animate__delay-1s {
+    animation-delay: 0.3s;
+}
+
+.animate__delay-2s {
+    animation-delay: 0.6s;
+}
+</style>
+{% endblock %} 

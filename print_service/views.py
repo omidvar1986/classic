@@ -14,6 +14,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from typing_service.models import TypingOrder
 from .models import PaymentSettings
 from .forms import PaymentSettingsForm
+from .models import PrintPriceSettings
 
 # -------------------------
 # سفارش جدید و آپلود فایل
@@ -27,13 +28,56 @@ def order_create(request):
             uploaded_file = file_form.save(commit=False)
             uploaded_file.order = order
             uploaded_file.save()
+            
+            # Handle selected accessories
+            import json
+            selected_accessories = request.POST.get('selected_accessories')
+            if selected_accessories:
+                try:
+                    accessories_data = json.loads(selected_accessories)
+                    from .models import Accessory, PrintOrderAccessory
+                    for acc_data in accessories_data:
+                        accessory_id = acc_data.get('id')
+                        quantity = acc_data.get('quantity', 1)
+                        try:
+                            accessory = Accessory.objects.get(id=accessory_id)
+                            PrintOrderAccessory.objects.create(
+                                order=order,
+                                accessory=accessory,
+                                quantity=quantity,
+                                price=accessory.base_price * quantity
+                            )
+                        except Accessory.DoesNotExist:
+                            continue
+                except (json.JSONDecodeError, ValueError):
+                    pass
+            
             return redirect('print_service:order_submitted', order_id=order.id)
     else:
         order_form = PrintOrderForm()
         file_form = UploadedFileForm()
+    
+    # Get accessories grouped by category
+    from .models import Accessory, PrintPriceSettings
+    accessories = Accessory.objects.filter(is_active=True, service_type__in=['print', 'both'])
+    accessories_by_category = {}
+    for accessory in accessories:
+        if accessory.category not in accessories_by_category:
+            accessories_by_category[accessory.category] = []
+        accessories_by_category[accessory.category].append(accessory)
+    
+    # Get base price from settings
+    try:
+        price_settings = PrintPriceSettings.objects.first()
+        base_price = price_settings.base_price_per_page if price_settings else 50000
+    except:
+        base_price = 50000
+    
     return render(request, 'print_service/order_create.html', {
         'order_form': order_form,
         'file_form': file_form,
+        'accessories_by_category': accessories_by_category,
+        'base_price': base_price,
     })
 
 def order_submitted(request, order_id):
@@ -371,4 +415,38 @@ def bank_settings_view(request):
         'payment_settings': payment_settings,
     }
     return render(request, 'print_service/bank_settings.html', context)
+
+def pricing_api(request):
+    """API endpoint for pricing data"""
+    try:
+        settings = PrintPriceSettings.objects.first()
+        if not settings:
+            # Create default settings if none exist
+            settings = PrintPriceSettings.objects.create()
+        
+        data = {
+            'base_price_per_page': settings.base_price_per_page,
+            'color_price_multiplier': float(settings.color_price_multiplier),
+            'double_sided_discount': float(settings.double_sided_discount),
+            'a4_price': settings.a4_price,
+            'a3_price': settings.a3_price,
+            'a5_price': settings.a5_price,
+            'letter_price': settings.letter_price,
+            'bulk_discount_10': float(settings.bulk_discount_10),
+            'bulk_discount_50': float(settings.bulk_discount_50),
+            'bulk_discount_100': float(settings.bulk_discount_100),
+        }
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def store_order(request):
+    """Store-like order interface"""
+    from .models import Accessory
+    accessories = Accessory.objects.filter(is_active=True).order_by('category', 'sort_order')
+    
+    context = {
+        'accessories': accessories,
+    }
+    return render(request, 'print_service/store_order.html', context)
 

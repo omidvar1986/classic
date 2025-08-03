@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-lg-8">
+    <div class="col-lg-10">
         <div class="card shadow-lg mt-4">
             <div class="card-header bg-primary text-white text-center">
                 <h4><i class="fas fa-keyboard me-2"></i>{% trans "New Typing Order" %}</h4>
@@ -13,24 +13,138 @@
             <div class="card-body p-4">
                 <p class="text-center">{% trans "Submit your document for a price quote. Our team will review it and notify you of the total cost." %}</p>
                 <hr>
-                <form method="post" enctype="multipart/form-data" novalidate>
+                <form method="post" enctype="multipart/form-data" novalidate id="typingOrderForm">
                     {% csrf_token %}
                     
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                                <small class="form-text text-muted">{{ field.help_text }}</small>
-                            {% endif %}
-                            {% for error in field.errors %}
-                                <div class="text-danger small mt-1">{{ error }}</div>
+                    <!-- Customer Information -->
+                    <h5 class="mb-3">{% trans "Customer Information" %}</h5>
+                    <div class="mb-3">
+                        {{ form.user_name.label_tag }}
+                        {{ form.user_name }}
+                        {{ form.user_name.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.user_email.label_tag }}
+                        {{ form.user_email }}
+                        {{ form.user_email.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.user_phone.label_tag }}
+                        {{ form.user_phone }}
+                        {{ form.user_phone.errors }}
+                    </div>
+                    
+                    <!-- Document Information -->
+                    <h5 class="mt-4 mb-3">{% trans "Document Information" %}</h5>
+                    <div class="mb-3">
+                        {{ form.description.label_tag }}
+                        {{ form.description }}
+                        {{ form.description.errors }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.document_file.label_tag }}
+                        {{ form.document_file }}
+                        {{ form.document_file.errors }}
+                        <small class="form-text text-muted">{% trans "Allowed formats: DOC, DOCX, PDF, TXT. Max size: 10MB." %}</small>
+                    </div>
+                    
+                    <!-- Accessories & Finishing Options -->
+                    {% if accessories_by_category %}
+                    <h5 class="mt-4 mb-3">
+                        <i class="fas fa-tools me-2"></i>{% trans "Accessories & Finishing Options" %}
+                    </h5>
+                    <div class="accessories-section mb-4">
+                        <!-- Accessories by Category -->
+                        <div class="accessories-categories">
+                            {% for category, accessories in accessories_by_category.items %}
+                            <div class="accessory-category mb-4">
+                                <h6 class="category-title mb-3">
+                                    <i class="fas fa-tag me-2"></i>
+                                    {% if category == 'binding' %}
+                                        {% trans "Binding Options" %}
+                                    {% elif category == 'finishing' %}
+                                        {% trans "Finishing Options" %}
+                                    {% elif category == 'packaging' %}
+                                        {% trans "Packaging Options" %}
+                                    {% else %}
+                                        {{ category|title }}
+                                    {% endif %}
+                                </h6>
+                                <div class="row">
+                                    {% for accessory in accessories %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="accessory-card border rounded p-3 h-100">
+                                            <div class="form-check">
+                                                <input class="form-check-input accessory-checkbox" 
+                                                       type="checkbox" 
+                                                       id="accessory_{{ accessory.id }}"
+                                                       data-accessory-id="{{ accessory.id }}"
+                                                       data-price="{{ accessory.base_price }}"
+                                                       data-category="{{ accessory.category }}"
+                                                       data-icon="{{ accessory.icon }}">
+                                                <label class="form-check-label w-100" for="accessory_{{ accessory.id }}">
+                                                    <div class="accessory-info">
+                                                        <div class="accessory-header d-flex justify-content-between align-items-start mb-2">
+                                                            <div>
+                                                                <i class="{{ accessory.icon }} me-2 text-primary"></i>
+                                                                <strong>{{ accessory.name }}</strong>
+                                                            </div>
+                                                            <span class="price-badge badge bg-success">+{{ accessory.base_price|floatformat:0 }} تومان</span>
+                                                        </div>
+                                                        <div class="accessory-description text-muted small mb-2">
+                                                            {{ accessory.description }}
+                                                        </div>
+                                                        <div class="quantity-selector" style="display: none;">
+                                                            <div class="d-flex align-items-center">
+                                                                <label class="form-label me-2 mb-0">{% trans "Quantity:" %}</label>
+                                                                <input type="number" 
+                                                                       class="form-control form-control-sm accessory-quantity" 
+                                                                       data-accessory-id="{{ accessory.id }}"
+                                                                       value="1" min="1" max="10" style="width: 80px;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                             {% endfor %}
                         </div>
-                    {% endfor %}
+                        
+                        <!-- Price Summary -->
+                        <div class="price-summary mt-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-calculator me-2"></i>{% trans "Price Summary" %}
+                                    </h6>
+                                    <div class="price-breakdown">
+                                        <div class="price-row d-flex justify-content-between">
+                                            <span>{% trans "Base Price:" %}</span>
+                                            <span id="base-price">10,000 تومان</span>
+                                        </div>
+                                        <div class="price-row d-flex justify-content-between" id="accessories-price-row" style="display: none;">
+                                            <span>{% trans "Accessories:" %}</span>
+                                            <span id="accessories-price">0 تومان</span>
+                                        </div>
+                                        <hr>
+                                        <div class="price-row d-flex justify-content-between total">
+                                            <span><strong>{% trans "Total:" %}</strong></span>
+                                            <span id="total-price"><strong>10,000 تومان</strong></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-success btn-lg">
+                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                            <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                             <i class="fas fa-paper-plane me-2"></i>{% trans "Submit for Review" %}
                         </button>
                     </div>
@@ -39,4 +153,139 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Accessories functionality
+    const accessoryCheckboxes = document.querySelectorAll('.accessory-checkbox');
+    const accessoryQuantities = document.querySelectorAll('.accessory-quantity');
+    const basePriceElement = document.getElementById('base-price');
+    const accessoriesPriceElement = document.getElementById('accessories-price');
+    const accessoriesPriceRow = document.getElementById('accessories-price-row');
+    const totalPriceElement = document.getElementById('total-price');
+    
+    let basePrice = 10000; // Base price in Tomans
+    let accessoriesTotal = 0;
+    
+    function formatPrice(price) {
+        return price.toLocaleString('fa-IR') + ' تومان';
+    }
+    
+    function updatePriceSummary() {
+        const total = basePrice + accessoriesTotal;
+        
+        if (basePriceElement) basePriceElement.textContent = formatPrice(basePrice);
+        if (accessoriesPriceElement) accessoriesPriceElement.textContent = formatPrice(accessoriesTotal);
+        if (totalPriceElement) totalPriceElement.innerHTML = `<strong>${formatPrice(total)}</strong>`;
+        
+        // Show/hide accessories price row
+        if (accessoriesPriceRow) {
+            accessoriesPriceRow.style.display = accessoriesTotal > 0 ? 'block' : 'none';
+        }
+    }
+    
+    function calculateAccessoriesTotal() {
+        accessoriesTotal = 0;
+        accessoryCheckboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const price = parseFloat(checkbox.dataset.price) || 0;
+                const accessoryId = checkbox.dataset.accessoryId;
+                const quantityInput = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+                const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+                accessoriesTotal += price * quantity;
+            }
+        });
+        updatePriceSummary();
+    }
+    
+    // Handle accessory checkbox changes
+    accessoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const accessoryId = this.dataset.accessoryId;
+            const quantitySelector = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+            const accessoryCard = this.closest('.accessory-card');
+            
+            if (this.checked) {
+                if (quantitySelector) {
+                    quantitySelector.parentElement.style.display = 'block';
+                }
+                if (accessoryCard) {
+                    accessoryCard.classList.add('selected');
+                }
+            } else {
+                if (quantitySelector) {
+                    quantitySelector.parentElement.style.display = 'none';
+                    quantitySelector.value = 1;
+                }
+                if (accessoryCard) {
+                    accessoryCard.classList.remove('selected');
+                }
+            }
+            calculateAccessoriesTotal();
+        });
+    });
+    
+    // Handle quantity changes
+    accessoryQuantities.forEach(quantityInput => {
+        quantityInput.addEventListener('change', calculateAccessoriesTotal);
+        quantityInput.addEventListener('input', calculateAccessoriesTotal);
+    });
+    
+    // Initialize price summary
+    updatePriceSummary();
+    
+    // Spinner on submit
+    const form = document.getElementById('typingOrderForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Client-side file validation
+            const fileInput = form.querySelector('input[type="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const allowed = ['.doc', '.docx', '.pdf', '.txt'];
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                if (!allowed.includes(ext)) {
+                    alert('Unsupported file format!');
+                    e.preventDefault();
+                    return false;
+                }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be under 10MB!');
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Collect selected accessories data
+            const selectedAccessories = [];
+            accessoryCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const accessoryId = checkbox.dataset.accessoryId;
+                    const quantityInput = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+                    const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+                    selectedAccessories.push({
+                        id: accessoryId,
+                        quantity: quantity
+                    });
+                }
+            });
+            
+            // Add accessories data to form
+            const accessoriesInput = document.createElement('input');
+            accessoriesInput.type = 'hidden';
+            accessoriesInput.name = 'selected_accessories';
+            accessoriesInput.value = JSON.stringify(selectedAccessories);
+            form.appendChild(accessoriesInput);
+            
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+        });
+    }
+});
+</script>
 {% endblock %}

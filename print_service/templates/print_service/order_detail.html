@@ -1,4 +1,5 @@
 {% extends 'print_service/base.html' %}
+{% load dashboard_filters %}
 
 
 {% block title %}Order #{{ order.id }} - Smart Office{% endblock %}
@@ -97,12 +98,52 @@
                             {% endif %}
                         </p>
                         {% if not order.is_paid and order.payment_method == 'online' %}
-                            <a href="{% url 'print_service:payment_page' order.id %}" class="btn btn-primary btn-sm">
+                            <a href="{% url 'paymentslip:upload' 'print' order.id %}" class="btn btn-primary btn-sm">
                                 <i class="fas fa-credit-card me-1"></i>پرداخت
                             </a>
                         {% endif %}
                     </div>
                 </div>
+
+                <!-- Selected Accessories -->
+                {% if order.accessories.all %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5><i class="fas fa-tools me-2"></i>Selected Accessories</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Accessory</th>
+                                        <th>Category</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for accessory in order.accessories.all %}
+                                    <tr>
+                                        <td>
+                                            <i class="{{ accessory.accessory.icon }} me-2 text-primary"></i>
+                                            <strong>{{ accessory.accessory.name }}</strong>
+                                        </td>
+                                        <td>{{ accessory.accessory.get_category_display }}</td>
+                                        <td>{{ accessory.quantity }}</td>
+                                        <td>{{ accessory.price|floatformat:0 }} تومان</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <td colspan="3"><strong>Total Accessories:</strong></td>
+                                        <td><strong>{{ order.get_accessories_total|floatformat:0 }} تومان</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- Uploaded Files -->
                 {% if files %}

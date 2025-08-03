@@ -18,6 +18,30 @@ def order_create_view(request):
         if form.is_valid():
             order = form.save()
 
+            # Handle selected accessories
+            import json
+            selected_accessories = request.POST.get('selected_accessories')
+            if selected_accessories:
+                try:
+                    accessories_data = json.loads(selected_accessories)
+                    from print_service.models import Accessory
+                    from .models import TypingOrderAccessory
+                    for acc_data in accessories_data:
+                        accessory_id = acc_data.get('id')
+                        quantity = acc_data.get('quantity', 1)
+                        try:
+                            accessory = Accessory.objects.get(id=accessory_id)
+                            TypingOrderAccessory.objects.create(
+                                order=order,
+                                accessory=accessory,
+                                quantity=quantity,
+                                price=accessory.base_price * quantity
+                            )
+                        except Accessory.DoesNotExist:
+                            continue
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
             # Send confirmation email
             if order.user_email:
                 subject = _('Your Typing Order #{id} has been submitted!').format(id=order.id)
@@ -40,7 +64,20 @@ def order_create_view(request):
             return redirect('typing_service:order_submitted', order_id=order.id)
     else:
         form = TypingOrderForm()
-    return render(request, 'typing_service/order_create.html', {'form': form})
+    
+    # Get accessories grouped by category
+    from print_service.models import Accessory
+    accessories = Accessory.objects.filter(is_active=True, service_type__in=['typing', 'both'])
+    accessories_by_category = {}
+    for accessory in accessories:
+        if accessory.category not in accessories_by_category:
+            accessories_by_category[accessory.category] = []
+        accessories_by_category[accessory.category].append(accessory)
+    
+    return render(request, 'typing_service/order_create.html', {
+        'form': form,
+        'accessories_by_category': accessories_by_category,
+    })
 
 
 def order_submitted_view(request, order_id):

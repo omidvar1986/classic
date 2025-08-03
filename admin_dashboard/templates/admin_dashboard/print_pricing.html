@@ -1,0 +1,402 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}مدیریت قیمت‌گذاری پرینت{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-print text-warning me-2"></i>مدیریت قیمت‌گذاری پرینت
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:settings_dashboard' %}">تنظیمات</a></li>
+                    <li class="breadcrumb-item active">قیمت‌گذاری پرینت</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت
+            </a>
+            <button type="button" class="btn btn-primary" onclick="savePricing()">
+                <i class="fas fa-save me-1"></i>ذخیره تنظیمات
+            </button>
+        </div>
+    </div>
+
+    <!-- Pricing Overview -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-alt fa-2x text-primary mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.base_price_per_page|floatformat:0 }}</h4>
+                    <p class="text-muted mb-0">قیمت پایه هر صفحه</p>
+                    <small class="text-primary">تومان</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-palette fa-2x text-success mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.color_price_multiplier|floatformat:1 }}x</h4>
+                    <p class="text-muted mb-0">ضریب قیمت رنگی</p>
+                    <small class="text-success">50% گران‌تر</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-copy fa-2x text-warning mb-3"></i>
+                    <h4 class="mb-1">{{ pricing.double_sided_discount|floatformat:1 }}x</h4>
+                    <p class="text-muted mb-0">تخفیف دو رو</p>
+                    <small class="text-warning">20% تخفیف</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-percentage fa-2x text-danger mb-3"></i>
+                    <h4 class="mb-1">{{ avg_bulk_discount|floatformat:0 }}%</h4>
+                    <p class="text-muted mb-0">تخفیف متوسط عمده</p>
+                    <small class="text-danger">برای سفارشات بزرگ</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pricing Configuration -->
+    <div class="row">
+        <!-- Base Pricing -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>تنظیمات پایه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="basePricingForm">
+                        <div class="mb-3">
+                            <label for="base_price_per_page" class="form-label">قیمت پایه هر صفحه (تومان)</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="base_price_per_page" 
+                                       value="{{ pricing.base_price_per_page }}" min="0" step="1000">
+                                <span class="input-group-text">تومان</span>
+                            </div>
+                            <div class="form-text">قیمت پایه برای پرینت سیاه و سفید تک رو</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="color_price_multiplier" class="form-label">ضریب قیمت رنگی</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="color_price_multiplier" 
+                                       value="{{ pricing.color_price_multiplier }}" min="1" max="5" step="0.1">
+                                <span class="input-group-text">برابر</span>
+                            </div>
+                            <div class="form-text">مثال: 1.5 یعنی 50% گران‌تر از سیاه و سفید</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="double_sided_discount" class="form-label">تخفیف پرینت دو رو</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="double_sided_discount" 
+                                       value="{{ pricing.double_sided_discount }}" min="0.1" max="1" step="0.05">
+                                <span class="input-group-text">برابر</span>
+                            </div>
+                            <div class="form-text">مثال: 0.8 یعنی 20% تخفیف نسبت به تک رو</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paper Size Pricing -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-ruler me-2"></i>قیمت‌گذاری اندازه کاغذ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="paperSizeForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="a4_price" class="form-label">A4 (تومان)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="a4_price" 
+                                           value="{{ pricing.a4_price }}" min="0" step="1000">
+                                    <span class="input-group-text">تومان</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="a3_price" class="form-label">A3 (تومان)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="a3_price" 
+                                           value="{{ pricing.a3_price }}" min="0" step="1000">
+                                    <span class="input-group-text">تومان</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="a5_price" class="form-label">A5 (تومان)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="a5_price" 
+                                           value="{{ pricing.a5_price }}" min="0" step="1000">
+                                    <span class="input-group-text">تومان</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="letter_price" class="form-label">Letter (تومان)</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="letter_price" 
+                                           value="{{ pricing.letter_price }}" min="0" step="1000">
+                                    <span class="input-group-text">تومان</span>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Discounts -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2"></i>تخفیف‌های عمده
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="bulkDiscountForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_10" class="form-label">10+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_10" 
+                                           value="{{ pricing.bulk_discount_10 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">5% تخفیف</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_50" class="form-label">50+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_50" 
+                                           value="{{ pricing.bulk_discount_50 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">10% تخفیف</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bulk_discount_100" class="form-label">100+ صفحه</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="bulk_discount_100" 
+                                           value="{{ pricing.bulk_discount_100 }}" min="0.1" max="1" step="0.01">
+                                    <span class="input-group-text">برابر</span>
+                                </div>
+                                <div class="form-text">15% تخفیف</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Calculator Preview -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>محاسبه‌گر قیمت
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="preview_pages" class="form-label">تعداد صفحات</label>
+                        <input type="number" class="form-control" id="preview_pages" value="10" min="1" max="1000">
+                    </div>
+                    <div class="mb-3">
+                        <label for="preview_size" class="form-label">اندازه کاغذ</label>
+                        <select class="form-select" id="preview_size">
+                            <option value="a4">A4</option>
+                            <option value="a3">A3</option>
+                            <option value="a5">A5</option>
+                            <option value="letter">Letter</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="preview_color">
+                            <label class="form-check-label" for="preview_color">پرینت رنگی</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="preview_double">
+                            <label class="form-check-label" for="preview_double">دو رو</label>
+                        </div>
+                    </div>
+                    <div class="alert alert-info">
+                        <strong>قیمت تخمینی:</strong>
+                        <div id="preview_price" class="fs-4 text-primary">0 تومان</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <button type="button" class="btn btn-primary btn-lg" onclick="savePricing()">
+                        <i class="fas fa-save me-2"></i>ذخیره تنظیمات قیمت‌گذاری
+                    </button>
+                    <p class="text-muted mt-2 mb-0">تغییرات بلافاصله در سیستم اعمال می‌شود</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">موفقیت</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <p>تنظیمات قیمت‌گذاری با موفقیت ذخیره شد.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">باشه</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function savePricing() {
+    const formData = new FormData();
+    
+    // Base pricing
+    formData.append('base_price_per_page', document.getElementById('base_price_per_page').value);
+    formData.append('color_price_multiplier', document.getElementById('color_price_multiplier').value);
+    formData.append('double_sided_discount', document.getElementById('double_sided_discount').value);
+    
+    // Paper size pricing
+    formData.append('a4_price', document.getElementById('a4_price').value);
+    formData.append('a3_price', document.getElementById('a3_price').value);
+    formData.append('a5_price', document.getElementById('a5_price').value);
+    formData.append('letter_price', document.getElementById('letter_price').value);
+    
+    // Bulk discounts
+    formData.append('bulk_discount_10', document.getElementById('bulk_discount_10').value);
+    formData.append('bulk_discount_50', document.getElementById('bulk_discount_50').value);
+    formData.append('bulk_discount_100', document.getElementById('bulk_discount_100').value);
+    
+    fetch('{% url "admin_dashboard:save_print_pricing" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            new bootstrap.Modal(document.getElementById('successModal')).show();
+        } else {
+            alert('خطا در ذخیره تنظیمات: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور');
+    });
+}
+
+function updatePricePreview() {
+    const pages = parseInt(document.getElementById('preview_pages').value) || 0;
+    const size = document.getElementById('preview_size').value;
+    const isColor = document.getElementById('preview_color').checked;
+    const isDouble = document.getElementById('preview_double').checked;
+    
+    // Get current pricing values
+    const basePrice = parseFloat(document.getElementById('base_price_per_page').value) || 0;
+    const colorMultiplier = parseFloat(document.getElementById('color_price_multiplier').value) || 1;
+    const doubleDiscount = parseFloat(document.getElementById('double_sided_discount').value) || 1;
+    
+    let price = basePrice;
+    
+    // Apply color multiplier
+    if (isColor) {
+        price *= colorMultiplier;
+    }
+    
+    // Apply double-sided discount
+    if (isDouble) {
+        price *= doubleDiscount;
+    }
+    
+    // Apply bulk discount
+    let bulkDiscount = 1;
+    if (pages >= 100) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_100').value) || 1;
+    } else if (pages >= 50) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_50').value) || 1;
+    } else if (pages >= 10) {
+        bulkDiscount = parseFloat(document.getElementById('bulk_discount_10').value) || 1;
+    }
+    
+    price *= bulkDiscount;
+    price *= pages;
+    
+    document.getElementById('preview_price').textContent = Math.round(price).toLocaleString() + ' تومان';
+}
+
+// Add event listeners for price preview
+document.addEventListener('DOMContentLoaded', function() {
+    const previewInputs = ['preview_pages', 'preview_size', 'preview_color', 'preview_double'];
+    const pricingInputs = ['base_price_per_page', 'color_price_multiplier', 'double_sided_discount', 
+                          'bulk_discount_10', 'bulk_discount_50', 'bulk_discount_100'];
+    
+    previewInputs.forEach(id => {
+        document.getElementById(id).addEventListener('change', updatePricePreview);
+    });
+    
+    pricingInputs.forEach(id => {
+        document.getElementById(id).addEventListener('input', updatePricePreview);
+    });
+    
+    // Initial price calculation
+    updatePricePreview();
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,127 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Feedback - Government Services" %}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 mb-3">
+                    <i class="fas fa-comment-dots me-3 text-primary"></i>{% trans "Feedback" %}
+                </h1>
+                <p class="lead text-muted">{% trans "Help us improve our government services portal by sharing your feedback!" %}</p>
+            </div>
+
+            <!-- Feedback Form -->
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>{% trans "Share Your Feedback" %}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{% trans "Feedback Type" %} *</label>
+                                {{ form.feedback_type }}
+                                {% if form.feedback_type.errors %}
+                                <div class="text-danger small">{{ form.feedback_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{% trans "Related Service" %}</label>
+                                {{ form.service }}
+                                {% if form.service.errors %}
+                                <div class="text-danger small">{{ form.service.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Title" %} *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="text-danger small">{{ form.title.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">{% trans "Description" %} *</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">{% trans "Email Address (Optional)" %}</label>
+                            {{ form.email }}
+                            <div class="form-text">{% trans "We'll only use this to follow up on your feedback if needed." %}</div>
+                            {% if form.email.errors %}
+                            <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>{% trans "Submit Feedback" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Feedback Types Info -->
+            <div class="row mt-5">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-primary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bug fa-2x text-danger mb-3"></i>
+                            <h5>{% trans "Bug Report" %}</h5>
+                            <p class="text-muted">{% trans "Found a technical issue? Let us know so we can fix it quickly." %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-lightbulb fa-2x text-warning mb-3"></i>
+                            <h5>{% trans "Feature Request" %}</h5>
+                            <p class="text-muted">{% trans "Have an idea for a new feature? We'd love to hear it!" %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                            <h5>{% trans "Service Issue" %}</h5>
+                            <p class="text-muted">{% trans "Experiencing problems with a specific government service?" %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 border-secondary">
+                        <div class="card-body text-center">
+                            <i class="fas fa-thumbs-up fa-2x text-success mb-3"></i>
+                            <h5>{% trans "Improvement Suggestion" %}</h5>
+                            <p class="text-muted">{% trans "How can we make our platform better for you?" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Services -->
+            <div class="text-center mt-4">
+                <a href="{% url 'government_services:service_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Services" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

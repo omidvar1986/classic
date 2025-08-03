@@ -30,16 +30,7 @@
     <div class="container text-center">
         <h1 class="display-4 mb-4">{% trans "Welcome to Smart Office" %}</h1>
         <p class="lead mb-4">{% trans "Your complete digital business solution for printing, government services, and more!" %}</p>
-        {% if user.is_authenticated %}
-        <div class="d-flex gap-3 justify-content-center">
-            <a href="{% url 'accounts:dashboard' %}" class="btn btn-light btn-lg">
-                <i class="fas fa-user me-2"></i>{% trans "My Dashboard" %}
-            </a>
-            <a href="/print/" class="btn btn-outline-light btn-lg">
-                <i class="fas fa-print me-2"></i>{% trans "Start Printing Now" %}
-            </a>
-        </div>
-        {% else %}
+        {% if not user.is_authenticated %}
         <div class="d-flex gap-3 justify-content-center">
             <a href="{% url 'accounts:login' %}" class="btn btn-light btn-lg">
                 <i class="fas fa-sign-in-alt me-2"></i>{% trans "Login" %}
@@ -52,6 +43,7 @@
     </div>
 </section>
 
+{% if user.is_authenticated %}
 <!-- Services Section -->
 <section class="py-5">
     <div class="container">
@@ -70,7 +62,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Government Services -->
             <div class="col-md-6 col-lg-4">
                 <div class="card service-card h-100 text-center">
@@ -80,25 +71,23 @@
                         </div>
                         <h5 class="card-title">🟡 {% trans "Government Services" %}</h5>
                         <p class="card-text">{% trans "Get help with government forms, subsidies, exams, and online services." %}</p>
-                        <a href="#" class="btn btn-warning">{% trans "Coming Soon" %}</a>
+                        <a href="{% url 'government_services:service_list' %}" class="btn btn-warning">{% trans "Use Service" %}</a>
                     </div>
                 </div>
             </div>
-
             <!-- Digital Shop -->
             <div class="col-md-6 col-lg-4">
                 <div class="card service-card h-100 text-center">
                     <div class="card-body">
-                        <div class="service-icon text-purple">
+                        <div class="service-icon text-success">
                             <i class="fas fa-shopping-cart"></i>
                         </div>
                         <h5 class="card-title">🟣 {% trans "Digital File Shop" %}</h5>
-                        <p class="card-text">{% trans "Download templates, forms, and ready-made documents for your business." %}</p>
-                        <a href="#" class="btn btn-secondary">{% trans "Coming Soon" %}</a>
+                        <p class="card-text">خرید لوازم التحریر، تجهیزات کامپیوتر، فلش مموری، بازی‌ها و قطعات کامپیوتر</p>
+                        <a href="{% url 'digital_shop:home' %}" class="btn btn-success">همین حالا خرید کنید</a>
                     </div>
                 </div>
             </div>
-
             <!-- Typing Service -->
             <div class="col-md-6 col-lg-4">
                 <div class="card service-card h-100 text-center">
@@ -112,7 +101,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Chat Support -->
             <div class="col-md-6 col-lg-4">
                 <div class="card service-card h-100 text-center">
@@ -153,4 +141,5 @@
         </div>
     </div>
 </section>
+{% endif %}
 {% endblock %}

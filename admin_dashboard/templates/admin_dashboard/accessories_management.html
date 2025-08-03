@@ -1,0 +1,384 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}مدیریت لوازم جانبی{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-tags text-primary me-2"></i>مدیریت لوازم جانبی
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item active">لوازم جانبی</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccessoryModal">
+                <i class="fas fa-plus me-1"></i>افزودن لوازم جانبی
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="category" class="form-label">دسته‌بندی</label>
+                    <select name="category" id="category" class="form-select">
+                        <option value="">همه دسته‌بندی‌ها</option>
+                        <option value="binding" {% if request.GET.category == 'binding' %}selected{% endif %}>گزینه‌های صحافی</option>
+                        <option value="finishing" {% if request.GET.category == 'finishing' %}selected{% endif %}>گزینه‌های تکمیل</option>
+                        <option value="packaging" {% if request.GET.category == 'packaging' %}selected{% endif %}>بسته‌بندی</option>
+                        <option value="paper" {% if request.GET.category == 'paper' %}selected{% endif %}>گزینه‌های کاغذ</option>
+                        <option value="delivery" {% if request.GET.category == 'delivery' %}selected{% endif %}>تحویل</option>
+                        <option value="priority" {% if request.GET.category == 'priority' %}selected{% endif %}>اولویت</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="service_type" class="form-label">نوع سرویس</label>
+                    <select name="service_type" id="service_type" class="form-select">
+                        <option value="">همه سرویس‌ها</option>
+                        <option value="print" {% if request.GET.service_type == 'print' %}selected{% endif %}>سرویس پرینت</option>
+                        <option value="typing" {% if request.GET.service_type == 'typing' %}selected{% endif %}>سرویس تایپ</option>
+                        <option value="both" {% if request.GET.service_type == 'both' %}selected{% endif %}>هر دو سرویس</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">وضعیت</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">همه</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="search" class="form-label">جستجو</label>
+                    <input type="text" name="search" id="search" class="form-control" placeholder="نام لوازم جانبی..." value="{{ request.GET.search }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i>فیلتر
+                    </button>
+                    <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>پاک کردن
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Accessories Grid -->
+    <div class="row">
+        {% for accessory in accessories %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <!-- Accessory Image -->
+                <div class="position-relative">
+                    {% if accessory.image %}
+                    <img src="{{ accessory.image.url }}" class="card-img-top" alt="{{ accessory.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status Badge -->
+                    <div class="position-absolute top-0 start-0 m-2">
+                        {% if accessory.is_active %}
+                        <span class="badge bg-success">فعال</span>
+                        {% else %}
+                        <span class="badge bg-secondary">غیرفعال</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Featured Badge -->
+                    {% if accessory.is_featured %}
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-warning">ویژه</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <!-- Name and Price -->
+                    <h5 class="card-title">{{ accessory.name }}</h5>
+                    <p class="card-text text-muted small">{{ accessory.description|truncatechars:100 }}</p>
+                    
+                    <!-- Price -->
+                    <div class="mb-3">
+                        <span class="fs-5 fw-bold text-primary">{{ accessory.base_price }} تومان</span>
+                    </div>
+                    
+                    <!-- Categories and Service Type -->
+                    <div class="mb-3">
+                        <span class="badge bg-info me-1">{{ accessory.get_category_display }}</span>
+                        <span class="badge bg-secondary">{{ accessory.get_service_type_display }}</span>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    onclick="editAccessory({{ accessory.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="deleteAccessory({{ accessory.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-sort-numeric-up me-1"></i>{{ accessory.sort_order }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">هیچ لوازم جانبی یافت نشد</h4>
+                <p class="text-muted">برای شروع اولین لوازم جانبی خود را اضافه کنید.</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccessoryModal">
+                    <i class="fas fa-plus me-1"></i>افزودن لوازم جانبی
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if accessories.has_other_pages %}
+    <nav aria-label="صفحه‌بندی لوازم جانبی">
+        <ul class="pagination justify-content-center">
+            {% if accessories.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ accessories.previous_page_number }}&{{ request.GET.urlencode }}">قبلی</a>
+            </li>
+            {% endif %}
+            
+            {% for num in accessories.paginator.page_range %}
+            <li class="page-item {% if accessories.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if accessories.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ accessories.next_page_number }}&{{ request.GET.urlencode }}">بعدی</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Add/Edit Accessory Modal -->
+<div class="modal fade" id="addAccessoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">افزودن لوازم جانبی جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" id="accessoryForm">
+                {% csrf_token %}
+                <input type="hidden" name="accessory_id" id="accessory_id">
+                
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">نام لوازم جانبی *</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">توضیحات</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="base_price" class="form-label">قیمت پایه (تومان) *</label>
+                                <input type="number" class="form-control" id="base_price" name="base_price" step="1000" min="0" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Image and Settings -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="image" class="form-label">تصویر لوازم جانبی</label>
+                                <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                <div class="form-text">تصویر لوازم جانبی را انتخاب کنید</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="category" class="form-label">دسته‌بندی *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">انتخاب دسته‌بندی</option>
+                                    <option value="binding">گزینه‌های صحافی</option>
+                                    <option value="finishing">گزینه‌های تکمیل</option>
+                                    <option value="packaging">بسته‌بندی</option>
+                                    <option value="paper">گزینه‌های کاغذ</option>
+                                    <option value="delivery">تحویل</option>
+                                    <option value="priority">اولویت</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="service_type" class="form-label">نوع سرویس *</label>
+                                <select class="form-select" id="service_type" name="service_type" required>
+                                    <option value="">انتخاب سرویس</option>
+                                    <option value="print">سرویس پرینت</option>
+                                    <option value="typing">سرویس تایپ</option>
+                                    <option value="both">هر دو سرویس</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="sort_order" class="form-label">ترتیب نمایش</label>
+                                <input type="number" class="form-control" id="sort_order" name="sort_order" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                    <label class="form-check-label" for="is_active">فعال</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
+                                    <label class="form-check-label" for="is_featured">نمایش در بخش ویژه</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="color" class="form-label">رنگ نمایش</label>
+                                <input type="color" class="form-control form-control-color" id="color" name="color" value="#007bff">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-save me-1"></i>ذخیره
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأیید حذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                آیا مطمئن هستید که می‌خواهید این لوازم جانبی را حذف کنید؟
+                <br><strong id="deleteAccessoryName"></strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">حذف</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let accessoryToDelete = null;
+
+// Edit accessory
+function editAccessory(accessoryId) {
+    // Fetch accessory data and populate form
+    fetch(`/admin-panel/accessories/${accessoryId}/edit/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('accessory_id').value = data.id;
+            document.getElementById('name').value = data.name;
+            document.getElementById('description').value = data.description;
+            document.getElementById('base_price').value = data.base_price;
+            document.getElementById('category').value = data.category;
+            document.getElementById('service_type').value = data.service_type;
+            document.getElementById('sort_order').value = data.sort_order;
+            document.getElementById('is_active').checked = data.is_active;
+            document.getElementById('is_featured').checked = data.is_featured;
+            document.getElementById('color').value = data.color;
+            
+            document.getElementById('modalTitle').textContent = 'ویرایش لوازم جانبی';
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>به‌روزرسانی';
+            
+            const modal = new bootstrap.Modal(document.getElementById('addAccessoryModal'));
+            modal.show();
+        });
+}
+
+// Delete accessory
+function deleteAccessory(accessoryId) {
+    accessoryToDelete = accessoryId;
+    document.getElementById('deleteAccessoryName').textContent = 'لوازم جانبی #' + accessoryId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Confirm delete
+document.getElementById('confirmDelete').addEventListener('click', function() {
+    if (accessoryToDelete) {
+        fetch(`/admin-panel/accessories/${accessoryToDelete}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('خطا در حذف لوازم جانبی');
+            }
+        });
+    }
+});
+
+// Reset form when adding new accessory
+document.getElementById('addAccessoryModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('accessoryForm').reset();
+    document.getElementById('accessory_id').value = '';
+    document.getElementById('modalTitle').textContent = 'افزودن لوازم جانبی جدید';
+    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>ذخیره';
+});
+
+// Form submission
+document.getElementById('accessoryForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>در حال ذخیره...';
+});
+</script>
+{% endblock %} 

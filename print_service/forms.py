@@ -1,10 +1,18 @@
 # ✅ forms.py (کامل، شامل فرم‌های قبلی + فرم جدید مدیریت)
 
 from django import forms
-from .models import PrintOrder, UploadedFile
+from .models import PrintOrder, UploadedFile, Accessory, PackageDeal
 from .models import PaymentSettings
 
 class PrintOrderForm(forms.ModelForm):
+    # Accessories selection fields
+    accessories = forms.ModelMultipleChoiceField(
+        queryset=Accessory.objects.filter(service_type__in=['print', 'both'], is_active=True),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Accessories & Finishing Options"
+    )
+    
     class Meta:
         model = PrintOrder
         fields = [
@@ -23,6 +31,108 @@ class PrintOrderForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Delivery address (if delivery selected)'}),
             'payment_method': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Group accessories by category
+        accessories = Accessory.objects.filter(service_type__in=['print', 'both'], is_active=True)
+        self.fields['accessories'].queryset = accessories
+        
+        # Add custom widget attributes for JavaScript
+        self.fields['accessories'].widget.attrs.update({
+            'class': 'accessory-checkboxes',
+            'data-base-price': '5.00'  # Base price for print service
+        })
+    
+    def get_accessories_by_category(self):
+        """Group accessories by category for template rendering"""
+        accessories = self.fields['accessories'].queryset
+        categories = {}
+        for accessory in accessories:
+            if accessory.category not in categories:
+                categories[accessory.category] = []
+            categories[accessory.category].append(accessory)
+        return categories
+
+class AccessorySelectionForm(forms.Form):
+    """Form for selecting accessories with quantity and pricing"""
+    
+    def __init__(self, service_type='print', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Get accessories for the service type
+        accessories = Accessory.objects.filter(
+            service_type__in=[service_type, 'both'], 
+            is_active=True
+        ).order_by('category', 'sort_order')
+        
+        # Group accessories by category
+        categories = {}
+        for accessory in accessories:
+            if accessory.category not in categories:
+                categories[accessory.category] = []
+            categories[accessory.category].append(accessory)
+        
+        # Create form fields for each accessory
+        for category, category_accessories in categories.items():
+            for accessory in category_accessories:
+                field_name = f'accessory_{accessory.id}'
+                quantity_field_name = f'quantity_{accessory.id}'
+                
+                # Checkbox for accessory selection
+                self.fields[field_name] = forms.BooleanField(
+                    required=False,
+                    label=accessory.name,
+                    help_text=f"{accessory.description} (+${accessory.base_price})",
+                    widget=forms.CheckboxInput(attrs={
+                        'class': 'accessory-checkbox',
+                        'data-accessory-id': accessory.id,
+                        'data-price': str(accessory.base_price),
+                        'data-category': accessory.category,
+                        'data-icon': accessory.icon
+                    })
+                )
+                
+                # Quantity field for the accessory
+                self.fields[quantity_field_name] = forms.IntegerField(
+                    required=False,
+                    min_value=1,
+                    max_value=10,
+                    initial=1,
+                    widget=forms.NumberInput(attrs={
+                        'class': 'accessory-quantity',
+                        'data-accessory-id': accessory.id,
+                        'style': 'display: none;'
+                    })
+                )
+
+class PackageDealForm(forms.Form):
+    """Form for package deals"""
+    
+    def __init__(self, service_type='print', *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Get package deals for the service type
+        package_deals = PackageDeal.objects.filter(
+            service_type__in=[service_type, 'both'], 
+            is_active=True
+        )
+        
+        for deal in package_deals:
+            field_name = f'package_{deal.id}'
+            self.fields[field_name] = forms.BooleanField(
+                required=False,
+                label=deal.name,
+                help_text=f"{deal.description} (Save ${deal.savings})",
+                widget=forms.CheckboxInput(attrs={
+                    'class': 'package-deal-checkbox',
+                    'data-deal-id': deal.id,
+                    'data-discount-price': str(deal.discount_price),
+                    'data-original-price': str(deal.original_price),
+                    'data-savings': str(deal.savings),
+                    'data-accessories': ','.join([str(acc.id) for acc in deal.accessories.all()])
+                })
+            )
 
 class UploadedFileForm(forms.ModelForm):
     class Meta:

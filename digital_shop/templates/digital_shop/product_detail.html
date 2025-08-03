@@ -1,0 +1,498 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ product.name }} - {% trans "Digital Shop" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'digital_shop:home' %}">خانه</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'digital_shop:product_list' %}">{% trans "Products" %}</a></li>
+            {% if product.category %}
+            <li class="breadcrumb-item"><a href="{% url 'digital_shop:category_detail' product.category.slug %}">{{ product.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="product-gallery">
+                <!-- Main Image -->
+                <div class="main-image-container mb-3">
+                    <img id="mainImage" src="{% if product.images.first %}{{ product.images.first.image.url }}{% else %}{% static 'digital_shop/img/placeholder.jpg' %}{% endif %}" 
+                         class="img-fluid rounded" alt="{{ product.name }}">
+                </div>
+                
+                <!-- Thumbnail Images -->
+                {% if product.images.count > 1 %}
+                <div class="thumbnail-images">
+                    <div class="row">
+                        {% for image in product.images.all %}
+                        <div class="col-3 mb-2">
+                            <img src="{{ image.image.url }}" 
+                                 class="img-thumbnail thumbnail-img" 
+                                 alt="{{ product.name }}"
+                                 onclick="changeMainImage('{{ image.image.url }}')">
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-6">
+            <div class="product-info">
+                <!-- Product Badges -->
+                <div class="product-badges mb-3">
+                    {% if product.is_new %}
+                    <span class="badge bg-success me-2">{% trans "New" %}</span>
+                    {% endif %}
+                    {% if product.is_featured %}
+                    <span class="badge bg-warning me-2">ویژه</span>
+                    {% endif %}
+                    {% if product.is_on_sale %}
+                    <span class="badge bg-danger me-2">{% trans "Sale" %}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Product Name -->
+                <h1 class="product-title mb-3">{{ product.name }}</h1>
+
+                <!-- Brand -->
+                {% if product.brand %}
+                <p class="text-muted mb-3">
+                    <i class="fas fa-crown me-1"></i>
+                    <strong>برند:</strong> 
+                    <a href="{% url 'digital_shop:brand_detail' product.brand.slug %}" class="text-decoration-none">
+                        {{ product.brand.name }}
+                    </a>
+                </p>
+                {% endif %}
+
+                <!-- SKU -->
+                {% if product.sku %}
+                <p class="text-muted mb-3">
+                    <strong>کد محصول:</strong> {{ product.sku }}
+                </p>
+                {% endif %}
+
+                <!-- Price -->
+                <div class="price-section mb-4">
+                    {% if product.is_on_sale and product.compare_price and product.compare_price > product.price %}
+                    <div class="mb-2">
+                        <span class="text-muted text-decoration-line-through fs-5">{{ product.compare_price }} تومان</span>
+                        <span class="fs-2 fw-bold text-danger ms-2">{{ product.price }} تومان</span>
+                    </div>
+                    <div class="discount-badge">
+                        <span class="badge bg-danger fs-6">
+                            ذخیره {{ product.compare_price|add:"-"|add:product.price }} تومان
+                        </span>
+                    </div>
+                    {% else %}
+                    <span class="fs-2 fw-bold text-primary">{{ product.price }} تومان</span>
+                    {% endif %}
+                </div>
+
+                <!-- Stock Status -->
+                <div class="stock-section mb-4">
+                    {% if product.stock_quantity > 0 %}
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        <span class="text-success fw-bold">موجود</span>
+                        <span class="text-muted ms-2">({{ product.stock_quantity }} موجود)</span>
+                    </div>
+                    {% else %}
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-times-circle text-danger me-2"></i>
+                        <span class="text-danger fw-bold">ناموجود</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Add to Cart Section -->
+                {% if product.stock_quantity > 0 %}
+                <div class="add-to-cart-section mb-4">
+                    <form id="addToCartForm">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label">تعداد</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       value="1" min="1" max="{{ product.stock_quantity }}">
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-success btn-lg">
+                                        <i class="fas fa-shopping-cart me-2"></i>افزودن به سبد خرید
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Wishlist -->
+                <div class="wishlist-section mb-4">
+                    <button class="btn btn-outline-primary" onclick="toggleWishlist({{ product.id }})">
+                        <i class="fas fa-heart me-2"></i>افزودن به لیست علاقه‌مندی
+                    </button>
+                </div>
+
+                <!-- Product Actions -->
+                <div class="product-actions">
+                    <div class="row">
+                        <div class="col-6">
+                            <button class="btn btn-outline-secondary w-100" onclick="shareProduct()">
+                                <i class="fas fa-share me-2"></i>اشتراک‌گذاری
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-info w-100" onclick="printProduct()">
+                                <i class="fas fa-print me-2"></i>چاپ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Details Tabs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" 
+                            data-bs-target="#description" type="button" role="tab">
+                        <i class="fas fa-info-circle me-2"></i>توضیحات
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" 
+                            data-bs-target="#specifications" type="button" role="tab">
+                        <i class="fas fa-cogs me-2"></i>مشخصات
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" 
+                            data-bs-target="#reviews" type="button" role="tab">
+                        <i class="fas fa-star me-2"></i>نظرات ({{ product.reviews.count }})
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="productTabsContent">
+                <!-- Description Tab -->
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if product.description %}
+                            <div class="product-description">
+                                {{ product.description|linebreaks }}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">توضیحی برای این محصول موجود نیست.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specifications Tab -->
+                <div class="tab-pane fade" id="specifications" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% if product.attributes.all %}
+                            <div class="specifications-table">
+                                <table class="table table-striped">
+                                    <tbody>
+                                        {% for attr in product.attributes.all %}
+                                        <tr>
+                                            <th>{{ attr.name }}</th>
+                                            <td>{{ attr.value }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted">مشخصاتی برای این محصول موجود نیست.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            <!-- Review Form -->
+                            <div class="review-form mb-4">
+                                <h5>نظر بنویسید</h5>
+                                <form id="reviewForm">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="rating" class="form-label">امتیاز</label>
+                                        <select class="form-select" id="rating" name="rating" required>
+                                            <option value="">انتخاب امتیاز</option>
+                                            <option value="5">5 ستاره</option>
+                                            <option value="4">4 ستاره</option>
+                                            <option value="3">3 ستاره</option>
+                                            <option value="2">2 ستاره</option>
+                                            <option value="1">1 ستاره</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">نظر</label>
+                                        <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">ارسال نظر</button>
+                                </form>
+                            </div>
+
+                            <!-- Reviews List -->
+                            <div class="reviews-list">
+                                <h5>نظرات مشتریان</h5>
+                                {% if product.reviews.all %}
+                                {% for review in product.reviews.all %}
+                                <div class="review-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="stars mb-2">
+                                                {% for i in "12345" %}
+                                                <i class="fas fa-star {% if forloop.counter <= review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                                                {% endfor %}
+                                            </div>
+                                            <h6 class="mb-1">{{ review.customer_name }}</h6>
+                                            <p class="text-muted small mb-2">{{ review.created_at|date:"F d, Y" }}</p>
+                                        </div>
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <p class="text-muted">هنوز نظری ثبت نشده. اولین نفری باشید که نظر می‌دهید!</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">محصولات مرتبط</h3>
+            <div class="row">
+                {% for related_product in related_products %}
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="card h-100">
+                        {% if related_product.images.first %}
+                        <img src="{{ related_product.images.first.image.url }}" 
+                             class="card-img-top" alt="{{ related_product.name }}"
+                             style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ related_product.name }}</h6>
+                            <p class="card-text text-primary fw-bold">${{ related_product.price }}</p>
+                            <a href="{% url 'digital_shop:product_detail' related_product.slug %}" 
+                               class="btn btn-outline-primary btn-sm">مشاهده جزئیات</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeMainImage(imageUrl) {
+    document.getElementById('mainImage').src = imageUrl;
+}
+
+function addToCart(productId, quantity) {
+    fetch(`/shop/cart/add/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            quantity: quantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Product added to cart successfully!');
+        } else {
+            alert('Error adding product to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding product to cart');
+    });
+}
+
+function toggleWishlist(productId) {
+    fetch(`/shop/wishlist/toggle/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('Error updating wishlist');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating wishlist');
+    });
+}
+
+function shareProduct() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ product.name }}',
+            text: 'Check out this product!',
+            url: window.location.href
+        });
+    } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+    }
+}
+
+function printProduct() {
+    window.print();
+}
+
+// Handle add to cart form submission
+document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const quantity = document.getElementById('quantity').value;
+    addToCart({{ product.id }}, quantity);
+});
+
+// Handle review form submission
+document.getElementById('reviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch(`/shop/product/${product.slug}/review/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Review submitted successfully!');
+            location.reload();
+        } else {
+            alert('Error submitting review');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting review');
+    });
+});
+</script>
+
+<style>
+.product-gallery {
+    position: sticky;
+    top: 20px;
+}
+
+.main-image-container {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+
+.thumbnail-img {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.thumbnail-img:hover {
+    opacity: 0.7;
+}
+
+.product-title {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.price-section {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+.discount-badge {
+    margin-top: 0.5rem;
+}
+
+.stock-section {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+.product-actions {
+    margin-top: 2rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+    border-bottom-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.stars {
+    font-size: 1.1rem;
+}
+
+.review-item {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+
+@media print {
+    .product-actions,
+    .add-to-cart-section,
+    .wishlist-section,
+    .nav-tabs {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %} 

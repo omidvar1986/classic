@@ -1,0 +1,375 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}مدیریت تنظیمات{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-cogs text-primary me-2"></i>مدیریت تنظیمات
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item active">تنظیمات</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-tags fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="mb-1">{{ accessories_count }}</h3>
+                    <p class="text-muted mb-0">لوازم جانبی</p>
+                    <small class="text-success">{{ active_accessories_count }} فعال</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-box fa-2x text-success"></i>
+                    </div>
+                    <h3 class="mb-1">{{ packages_count }}</h3>
+                    <p class="text-muted mb-0">پکیج‌های ویژه</p>
+                    <small class="text-success">{{ active_packages_count }} فعال</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-print fa-2x text-warning"></i>
+                    </div>
+                    <h3 class="mb-1">{{ print_orders_count }}</h3>
+                    <p class="text-muted mb-0">سفارشات پرینت</p>
+                    <small class="text-info">{{ pending_print_orders }} در انتظار</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <i class="fas fa-keyboard fa-2x text-info"></i>
+                    </div>
+                    <h3 class="mb-1">{{ typing_orders_count }}</h3>
+                    <p class="text-muted mb-0">سفارشات تایپ</p>
+                    <small class="text-info">{{ pending_typing_orders }} در انتظار</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>عملیات سریع
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-tags fa-2x mb-2"></i>
+                                <span>مدیریت لوازم جانبی</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_dashboard:packages_management' %}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-box fa-2x mb-2"></i>
+                                <span>مدیریت پکیج‌ها</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_dashboard:print_pricing' %}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-print fa-2x mb-2"></i>
+                                <span>قیمت‌گذاری پرینت</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'admin_dashboard:typing_pricing' %}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
+                                <i class="fas fa-keyboard fa-2x mb-2"></i>
+                                <span>قیمت‌گذاری تایپ</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Sections -->
+    <div class="row">
+        <!-- Pricing Management -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>مدیریت قیمت‌گذاری
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-print fa-2x text-warning me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">سرویس پرینت</h6>
+                                    <p class="mb-0 text-muted">قیمت پایه: {{ print_base_price|floatformat:0 }} تومان</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-keyboard fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">سرویس تایپ</h6>
+                                    <p class="mb-0 text-muted">قیمت هر صفحه: {{ typing_price_per_page|floatformat:0 }} تومان</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_dashboard:print_pricing' %}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit me-1"></i>ویرایش قیمت‌های پرینت
+                        </a>
+                        <a href="{% url 'admin_dashboard:typing_pricing' %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-edit me-1"></i>ویرایش قیمت‌های تایپ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accessories Management -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2"></i>مدیریت لوازم جانبی
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">لوازم جانبی فعال</h6>
+                                    <p class="mb-0 text-muted">{{ active_accessories_count }} مورد</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-star fa-2x text-warning me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">لوازم ویژه</h6>
+                                    <p class="mb-0 text-muted">{{ featured_accessories_count }} مورد</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-list me-1"></i>مشاهده همه لوازم جانبی
+                        </a>
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addAccessoryModal">
+                            <i class="fas fa-plus me-1"></i>افزودن لوازم جانبی جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Package Deals -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-box me-2"></i>پکیج‌های ویژه
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-check-circle fa-2x text-success me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">پکیج‌های فعال</h6>
+                                    <p class="mb-0 text-muted">{{ active_packages_count }} مورد</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-percentage fa-2x text-danger me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">تخفیف متوسط</h6>
+                                    <p class="mb-0 text-muted">{{ avg_discount|floatformat:0 }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'admin_dashboard:packages_management' %}" class="btn btn-success btn-sm">
+                            <i class="fas fa-list me-1"></i>مشاهده همه پکیج‌ها
+                        </a>
+                        <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#addPackageModal">
+                            <i class="fas fa-plus me-1"></i>افزودن پکیج جدید
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Settings -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>تنظیمات پرداخت
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-university fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">بانک</h6>
+                                    <p class="mb-0 text-muted">{{ bank_name|default:"تنظیم نشده" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-credit-card fa-2x text-success me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">شماره کارت</h6>
+                                    <p class="mb-0 text-muted">{{ card_number|default:"تنظیم نشده" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{% url 'admin_dashboard:payment_settings' %}" class="btn btn-info btn-sm">
+                            <i class="fas fa-edit me-1"></i>ویرایش تنظیمات پرداخت
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>فعالیت‌های اخیر
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>نوع</th>
+                                    <th>توضیحات</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activities %}
+                                <tr>
+                                    <td>{{ activity.created_at|date:"Y-m-d H:i" }}</td>
+                                    <td>
+                                        {% if activity.type == 'pricing' %}
+                                        <span class="badge bg-warning">قیمت‌گذاری</span>
+                                        {% elif activity.type == 'accessory' %}
+                                        <span class="badge bg-primary">لوازم جانبی</span>
+                                        {% elif activity.type == 'package' %}
+                                        <span class="badge bg-success">پکیج</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">سایر</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ activity.description }}</td>
+                                    <td>
+                                        <span class="badge bg-success">تکمیل شده</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">هیچ فعالیتی یافت نشد</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Accessory Modal -->
+<div class="modal fade" id="addAccessoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">افزودن لوازم جانبی جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">برای افزودن لوازم جانبی جدید، به بخش مدیریت لوازم جانبی مراجعه کنید.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-primary">رفتن به مدیریت لوازم جانبی</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Package Modal -->
+<div class="modal fade" id="addPackageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">افزودن پکیج جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">برای افزودن پکیج جدید، به بخش مدیریت پکیج‌ها مراجعه کنید.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                <a href="{% url 'admin_dashboard:packages_management' %}" class="btn btn-success">رفتن به مدیریت پکیج‌ها</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,97 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Bank Settings - Smart Office" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-university me-2"></i>{% trans "Bank Account Settings" %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.bank_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-building me-2"></i>{% trans "Bank Name" %}
+                        </label>
+                        {{ form.bank_name }}
+                        {% if form.bank_name.errors %}
+                            <div class="text-danger">{{ form.bank_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.account_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-credit-card me-2"></i>{% trans "Account Number" %}
+                        </label>
+                        {{ form.account_number }}
+                        {% if form.account_number.errors %}
+                            <div class="text-danger">{{ form.account_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.card_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-credit-card me-2"></i>{% trans "Card Number" %}
+                        </label>
+                        {{ form.card_number }}
+                        {% if form.card_number.errors %}
+                            <div class="text-danger">{{ form.card_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.shaba_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag me-2"></i>{% trans "Shaba Number" %}
+                        </label>
+                        {{ form.shaba_number }}
+                        {% if form.shaba_number.errors %}
+                            <div class="text-danger">{{ form.shaba_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>{% trans "Save Settings" %}
+                        </button>
+                        <a href="{% url 'print_service:staff_dashboard' %}" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Dashboard" %}
+                        </a>
+                    </div>
+                </form>
+                
+                {% if payment_settings %}
+                <div class="mt-4">
+                    <h5 class="text-muted">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Current Settings" %}
+                    </h5>
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Bank Name:" %}</strong> {{ payment_settings.bank_name|default:"Not set" }}<br>
+                                    <strong>{% trans "Account Number:" %}</strong> {{ payment_settings.account_number|default:"Not set" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Card Number:" %}</strong> {{ payment_settings.card_number|default:"Not set" }}<br>
+                                    <strong>{% trans "Shaba Number:" %}</strong> {{ payment_settings.shaba_number|default:"Not set" }}
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>{% trans "Last updated:" %} {{ payment_settings.updated_at|date:"F j, Y, g:i a" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -9,6 +9,14 @@ from .models import TypingPriceSettings
 
 class TypingOrderForm(forms.ModelForm):
     """Form for users to submit a new typing order for review."""
+    # Accessories selection fields
+    accessories = forms.ModelMultipleChoiceField(
+        queryset=None,  # Will be set in __init__
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label=_("Accessories & Finishing Options")
+    )
+    
     class Meta:
         model = TypingOrder
         fields = ['user_name', 'user_email', 'user_phone', 'description', 'document_file']
@@ -19,6 +27,29 @@ class TypingOrderForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': _('Please provide any details about your document, such as formatting requirements.')}),
             'document_file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get accessories for typing service
+        from print_service.models import Accessory
+        accessories = Accessory.objects.filter(service_type__in=['typing', 'both'], is_active=True)
+        self.fields['accessories'].queryset = accessories
+        
+        # Add custom widget attributes for JavaScript
+        self.fields['accessories'].widget.attrs.update({
+            'class': 'accessory-checkboxes',
+            'data-base-price': '10000'  # Base price for typing service
+        })
+    
+    def get_accessories_by_category(self):
+        """Group accessories by category for template rendering"""
+        accessories = self.fields['accessories'].queryset
+        categories = {}
+        for accessory in accessories:
+            if accessory.category not in categories:
+                categories[accessory.category] = []
+            categories[accessory.category].append(accessory)
+        return categories
 
     def clean_upload_file(self):
         file = self.cleaned_data.get('upload_file')

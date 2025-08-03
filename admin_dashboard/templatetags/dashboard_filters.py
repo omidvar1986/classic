@@ -11,3 +11,7 @@ def get_order_type(order):
     elif isinstance(order, TypingOrder):
         return 'typing'
     return ''
+
+@register.filter
+def endswith(value, arg):
+    return str(value).endswith(arg)

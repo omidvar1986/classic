@@ -1,0 +1,38 @@
+{% extends 'print_service/base.html' %}
+{% block title %}User Management{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg mx-auto" style="max-width: 900px;">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">User Management</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Staff</th>
+                        <th>Superuser</th>
+                        <th>Active</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{% if user.is_staff %}<span class="badge bg-success">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                        <td>{% if user.is_superuser %}<span class="badge bg-danger">Yes</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                        <td>{% if user.is_active %}<span class="badge bg-primary">Active</span>{% else %}<span class="badge bg-warning">Inactive</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="text-center mt-4">
+                <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-outline-secondary">Back to Admin Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

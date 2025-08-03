@@ -10,7 +10,7 @@
         <h3><i class="fas fa-list-alt me-2"></i>{% trans "Typing Orders Dashboard" %}</h3>
         <form method="get" class="d-flex">
             <input type="text" name="q" class="form-control me-2" placeholder="Search by name or email..." value="{{ query }}">
-            <button class="btn btn-outline-primary" type="submit">{% trans "Search" %}</button>
+            <button class="btn btn-outline-primary" type="submit">جستجو</button>
         </form>
     </div>
 
@@ -20,12 +20,12 @@
                 <thead class="table-primary text-center">
                     <tr>
                         <th>ID</th>
-                        <th>{% trans "Name" %}</th>
+                        <th>نام</th>
                         <th>{% trans "Email" %}</th>
                         <th>{% trans "Page Count" %}</th>
-                        <th>{% trans "Status" %}</th>
+                        <th>وضعیت</th>
                         <th>{% trans "Payment Slip" %}</th>
-                        <th>{% trans "Actions" %}</th>
+                        <th>عملیات</th>
                     </tr>
                 </thead>
                 <tbody>

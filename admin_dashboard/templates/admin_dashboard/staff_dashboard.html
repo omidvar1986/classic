@@ -27,11 +27,11 @@
             <thead class="table-light">
                 <tr>
                     <th>Order ID</th>
-                    <th>Customer</th>
+                    <th>مشتری</th>
                     <th>Created</th>
                     <th>Payment Slip</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>وضعیت</th>
+                    <th>عملیات</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,7 +53,7 @@
                         {% elif order.payment_status == 'rejected' %}
                             <span class="badge bg-danger">Rejected</span>
                         {% else %}
-                            <span class="badge bg-warning text-dark">Pending</span>
+                            <span class="badge bg-warning text-dark">در انتظار</span>
                         {% endif %}
                     </td>
                     <td>

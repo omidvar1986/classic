@@ -1,0 +1,21 @@
+{% extends 'print_service/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="card shadow-lg mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">Admin Dashboard</h3>
+        </div>
+        <div class="card-body text-center">
+            <p class="lead">Welcome, {{ request.user.email }}!</p>
+            <a href="{% url 'accounts:user_management' %}" class="btn btn-outline-primary btn-lg my-3">
+                <i class="fas fa-users me-2"></i>Manage Users
+            </a>
+            <a href="{% url 'admin_dashboard:dashboard' %}" class="btn btn-outline-secondary btn-lg my-3 ms-2">
+                <i class="fas fa-tachometer-alt me-2"></i>Main Admin Dashboard
+            </a>
+            <p class="text-muted mt-4">You have full access to manage users and settings.</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

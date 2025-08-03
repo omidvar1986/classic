@@ -1,0 +1,242 @@
+{% extends 'print_service/base.html' %}
+{% load i18n %}
+
+{% block title %}ویرایش گروهی لوازم جانبی{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-edit me-2"></i>ویرایش گروهی لوازم جانبی</h2>
+                <a href="{% url 'admin_dashboard:accessories_management' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>بازگشت به لوازم جانبی
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-tools me-2"></i>عملیات گروهی</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Action Selection -->
+                        <div class="mb-4">
+                            <label for="{{ form.action.id_for_label }}" class="form-label">
+                                <strong>{{ form.action.label }}</strong>
+                            </label>
+                            {{ form.action }}
+                            {% if form.action.errors %}
+                                <div class="text-danger small mt-1">{{ form.action.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Accessories Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <strong>انتخاب لوازم جانبی</strong>
+                            </label>
+                            <div class="row mb-2">
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAll()">
+                                        <i class="fas fa-check-square me-2"></i>انتخاب همه
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAll()">
+                                        <i class="fas fa-square me-2"></i>لغو انتخاب همه
+                                    </button>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <span class="badge bg-info" id="selectedCount">0 انتخاب شده</span>
+                                </div>
+                            </div>
+                            
+                            <div class="accessories-grid" style="max-height: 400px; overflow-y: auto;">
+                                {% for accessory in form.accessories %}
+                                <div class="accessory-item border rounded p-3 mb-2">
+                                    <div class="form-check">
+                                        {{ accessory.tag }}
+                                        <label class="form-check-label" for="{{ accessory.id_for_label }}">
+                                            <div class="d-flex align-items-center">
+                                                <i class="{{ accessory.data.icon }} me-2 text-primary"></i>
+                                                <div class="flex-grow-1">
+                                                    <strong>{{ accessory.data.name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ accessory.data.description|truncatechars:80 }}</small>
+                                                    <br>
+                                                    <span class="badge bg-secondary">{{ accessory.data.get_category_display }}</span>
+                                                    {% if accessory.data.is_active %}
+                                                        <span class="badge bg-success">فعال</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">غیرفعال</span>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="text-end">
+                                                    <strong>{{ accessory.data.base_price|floatformat:0 }} تومان</strong>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if form.accessories.errors %}
+                                <div class="text-danger small mt-1">{{ form.accessories.errors.as_text }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning btn-lg" id="submitBtn" disabled>
+                                <i class="fas fa-save me-2"></i>اعمال عملیات گروهی
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help and Preview -->
+        <div class="col-lg-4">
+            <!-- Action Preview -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-eye me-2"></i>{% trans "Action Preview" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div id="actionPreview">
+                        <p class="text-muted">{% trans "Select an action and accessories to see preview" %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Information -->
+            <div class="card mt-3">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>{% trans "Help" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6>{% trans "Bulk Operations:" %}</h6>
+                        <ul class="mb-0">
+                            <li><strong>{% trans "Activate Selected:" %}</strong> {% trans "Enable all selected accessories" %}</li>
+                            <li><strong>{% trans "Deactivate Selected:" %}</strong> {% trans "Disable all selected accessories" %}</li>
+                            <li><strong>{% trans "Delete Selected:" %}</strong> {% trans "Permanently remove selected accessories" %}</li>
+                        </ul>
+                    </div>
+                    <div class="alert alert-warning">
+                        <h6>{% trans "Warning:" %}</h6>
+                        <p class="mb-0">{% trans "Bulk delete operations cannot be undone. Please be careful when selecting accessories for deletion." %}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>{% trans "Statistics" %}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">{% trans "Total:" %}</small>
+                            <div class="fw-bold">{{ form.accessories.queryset.count }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">فعال:</small>
+                            <div class="fw-bold">{{ form.accessories.queryset|length }}</div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <small class="text-muted">پرینت:</small>
+                            <div class="fw-bold">{{ form.accessories.queryset|length }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">تایپ:</small>
+                            <div class="fw-bold">{{ form.accessories.queryset|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const actionSelect = document.getElementById('{{ form.action.id_for_label }}');
+    const accessoryCheckboxes = document.querySelectorAll('input[name="{{ form.accessories.name }}"]');
+    const submitBtn = document.getElementById('submitBtn');
+    const selectedCount = document.getElementById('selectedCount');
+    const actionPreview = document.getElementById('actionPreview');
+    
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('input[name="{{ form.accessories.name }}"]:checked').length;
+        selectedCount.textContent = `${selected} انتخاب شده`;
+        submitBtn.disabled = selected === 0;
+    }
+    
+    function updateActionPreview() {
+        const action = actionSelect.value;
+        const selected = document.querySelectorAll('input[name="{{ form.accessories.name }}"]:checked').length;
+        
+        if (action && selected > 0) {
+            let previewText = '';
+            switch(action) {
+                case 'activate':
+                    previewText = `{% trans "Will activate" %} ${selected} {% trans "accessories" %}`;
+                    break;
+                case 'deactivate':
+                    previewText = `{% trans "Will deactivate" %} ${selected} {% trans "accessories" %}`;
+                    break;
+                case 'delete':
+                    previewText = `{% trans "Will permanently delete" %} ${selected} {% trans "accessories" %}`;
+                    break;
+            }
+            actionPreview.innerHTML = `<div class="alert alert-warning"><strong>${previewText}</strong></div>`;
+        } else {
+            actionPreview.innerHTML = '<p class="text-muted">{% trans "Select an action and accessories to see preview" %}</p>';
+        }
+    }
+    
+    function selectAll() {
+        accessoryCheckboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateSelectedCount();
+        updateActionPreview();
+    }
+    
+    function deselectAll() {
+        accessoryCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateSelectedCount();
+        updateActionPreview();
+    }
+    
+    // Event listeners
+    actionSelect.addEventListener('change', updateActionPreview);
+    accessoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateSelectedCount();
+            updateActionPreview();
+        });
+    });
+    
+    // Initial updates
+    updateSelectedCount();
+    updateActionPreview();
+    
+    // Make functions global
+    window.selectAll = selectAll;
+    window.deselectAll = deselectAll;
+});
+</script>
+{% endblock %} 
