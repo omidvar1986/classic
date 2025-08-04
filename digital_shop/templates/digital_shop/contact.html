@@ -1,0 +1,84 @@
+{% extends 'digital_shop/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}تماس با ما{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-envelope me-2"></i>تماس با ما
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">اطلاعات تماس</h5>
+                            <div class="mb-3">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <strong>آدرس:</strong><br>
+                                <span class="text-muted">تهران، مجاهدین اسلام رو به روی تعزیرات پلاک ۱۳</span>
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-phone text-primary me-2"></i>
+                                <strong>تلفن:</strong><br>
+                                <span class="text-muted">021-33444071</span>
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <strong>ایمیل:</strong><br>
+                                <span class="text-muted">info@digitalshop.ir</span>
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong>ساعات کاری:</strong><br>
+                                <span class="text-muted">شنبه تا چهارشنبه: 9 صبح تا 8 شب</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">فرم تماس</h5>
+                            <form method="post">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">نام و نام خانوادگی</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">ایمیل</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">تلفن</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subject" class="form-label">موضوع</label>
+                                    <select class="form-select" id="subject" name="subject" required>
+                                        <option value="">انتخاب کنید</option>
+                                        <option value="سوال عمومی">سوال عمومی</option>
+                                        <option value="مشکل در سفارش">مشکل در سفارش</option>
+                                        <option value="بازگشت کالا">بازگشت کالا</option>
+                                        <option value="پیشنهاد">پیشنهاد</option>
+                                        <option value="شکایت">شکایت</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="message" class="form-label">پیام</label>
+                                    <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>ارسال پیام
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

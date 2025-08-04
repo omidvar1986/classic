@@ -1,0 +1,332 @@
+{% extends 'digital_shop/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}پرداخت سفارش {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Order Summary -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-credit-card me-2"></i>پرداخت سفارش
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">شماره سفارش: {{ order.order_number }}</h5>
+                            <p class="text-muted mb-2">تاریخ سفارش: {{ order.created_at|date:"Y-m-d H:i" }}</p>
+                            <p class="text-muted mb-0">وضعیت: 
+                                <span class="badge bg-warning">در انتظار پرداخت</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h3 class="text-success mb-0">{{ order.total_amount|floatformat:0 }} تومان</h3>
+                            <small class="text-muted">مبلغ قابل پرداخت</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Information -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-university me-2"></i>اطلاعات پرداخت
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-info-circle me-2"></i>دستورالعمل پرداخت
+                        </h6>
+                        <p class="mb-0">
+                            لطفاً مبلغ دقیق سفارش را به شماره کارت زیر واریز کرده و رسید پرداخت را در فرم زیر آپلود کنید.
+                        </p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="payment-info-card p-3 border rounded">
+                                <h6 class="text-primary mb-3">
+                                    <i class="fas fa-credit-card me-2"></i>اطلاعات کارت
+                                </h6>
+                                <div class="mb-3">
+                                    <strong>شماره کارت:</strong>
+                                    <div class="card-number-display mt-1">
+                                        <span class="card-number">{{ payment_settings.card_number }}</span>
+                                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('{{ payment_settings.card_number }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>صاحب حساب:</strong>
+                                    <div class="mt-1">{{ payment_settings.account_holder|default:"تنظیم نشده" }}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>نام بانک:</strong>
+                                    <div class="mt-1">{{ payment_settings.bank_name }}</div>
+                                </div>
+                                {% if payment_settings.shaba_number %}
+                                <div class="mb-3">
+                                    <strong>شماره شبا:</strong>
+                                    <div class="mt-1">
+                                        <span class="shaba-number">{{ payment_settings.shaba_number }}</span>
+                                        <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('{{ payment_settings.shaba_number }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="payment-summary-card p-3 border rounded">
+                                <h6 class="text-success mb-3">
+                                    <i class="fas fa-calculator me-2"></i>جزئیات پرداخت
+                                </h6>
+                                <div class="mb-3">
+                                    <strong>مبلغ قابل پرداخت:</strong>
+                                    <div class="fs-4 text-success fw-bold mt-1">{{ order.total_amount|floatformat:0 }} تومان</div>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>اعتبار سفارش:</strong>
+                                    <div class="mt-1">
+                                        <i class="fas fa-clock text-warning me-1"></i>
+                                        {{ payment_settings.order_validity_hours }} ساعت
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <strong>تاریخ انقضا:</strong>
+                                    <div class="mt-1 text-danger">
+                                        {{ order_expiry|date:"Y-m-d H:i" }}
+                                    </div>
+                                </div>
+                                {% if payment_settings.qr_code %}
+                                <div class="text-center">
+                                    <img src="{{ payment_settings.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 150px;">
+                                    <p class="text-muted small mt-2">اسکن کنید تا پرداخت کنید</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if payment_settings.payment_instructions %}
+                    <div class="mt-4">
+                        <h6 class="text-primary">
+                            <i class="fas fa-exclamation-triangle me-2"></i>نکات مهم
+                        </h6>
+                        <div class="alert alert-warning">
+                            {{ payment_settings.payment_instructions|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Receipt Upload Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>آپلود رسید پرداخت
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="paymentForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="receipt_image" class="form-label">
+                                        <strong>تصویر رسید پرداخت *</strong>
+                                    </label>
+                                    <input type="file" class="form-control" id="receipt_image" name="receipt_image" 
+                                           accept="image/*" required>
+                                    <div class="form-text">
+                                        لطفاً تصویر واضحی از رسید بانکی یا اسکرین‌شات تراکنش آپلود کنید
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="transaction_id" class="form-label">شماره تراکنش</label>
+                                    <input type="text" class="form-control" id="transaction_id" name="transaction_id" 
+                                           placeholder="مثال: 123456789">
+                                    <div class="form-text">شماره تراکنش بانکی (اختیاری)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="depositor_name" class="form-label">نام واریزکننده</label>
+                                    <input type="text" class="form-control" id="depositor_name" name="depositor_name" 
+                                           placeholder="نام شخصی که واریز کرده">
+                                    <div class="form-text">در صورت متفاوت بودن با نام سفارش</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="deposit_date" class="form-label">تاریخ واریز</label>
+                                    <input type="datetime-local" class="form-control" id="deposit_date" name="deposit_date">
+                                    <div class="form-text">تاریخ و زمان واریز (اختیاری)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="amount_paid" class="form-label">
+                                <strong>مبلغ واریز شده *</strong>
+                            </label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="amount_paid" name="amount_paid" 
+                                       value="{{ order.total_amount }}" step="1000" required>
+                                <span class="input-group-text">تومان</span>
+                            </div>
+                            <div class="form-text">
+                                مبلغ دقیقی که واریز کرده‌اید (باید برابر {{ order.total_amount|floatformat:0 }} تومان باشد)
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customer_notes" class="form-label">توضیحات اضافی</label>
+                            <textarea class="form-control" id="customer_notes" name="customer_notes" rows="3" 
+                                      placeholder="توضیحات اضافی در مورد پرداخت..."></textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle me-2"></i>نکات مهم
+                            </h6>
+                            <ul class="mb-0">
+                                <li>فقط پرداخت‌هایی با مبلغ دقیق قابل تایید هستند</li>
+                                <li>رسید باید واضح و خوانا باشد</li>
+                                <li>پرداخت شما در کمتر از 24 ساعت بررسی خواهد شد</li>
+                                <li>پس از تایید، محصولات برای شما ارسال می‌شوند</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>ارسال رسید پرداخت
+                            </button>
+                            <a href="{% url 'digital_shop:order_detail' order.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>بازگشت به جزئیات سفارش
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">پیش‌نمایش تصویر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="previewImage" src="" alt="Preview" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.payment-info-card, .payment-summary-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6 !important;
+}
+
+.card-number-display {
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1em;
+    letter-spacing: 2px;
+}
+
+.shaba-number {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    letter-spacing: 1px;
+}
+
+.payment-summary-card {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Copy to clipboard function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success message
+        const button = event.target.closest('button');
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-success');
+        
+        setTimeout(function() {
+            button.innerHTML = originalHTML;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+
+// Image preview
+document.getElementById('receipt_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            new bootstrap.Modal(document.getElementById('imagePreviewModal')).show();
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Form validation
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    const amountPaid = parseFloat(document.getElementById('amount_paid').value);
+    const orderAmount = parseFloat('{{ order.total_amount }}');
+    
+    if (Math.abs(amountPaid - orderAmount) > 1000) { // Allow 1000 Toman difference
+        e.preventDefault();
+        alert('مبلغ واریز شده باید برابر مبلغ سفارش باشد. لطفاً مبلغ را بررسی کنید.');
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال ارسال...';
+    submitBtn.disabled = true;
+});
+
+// Auto-fill deposit date with current time
+document.getElementById('deposit_date').value = new Date().toISOString().slice(0, 16);
+</script>
+{% endblock %} 

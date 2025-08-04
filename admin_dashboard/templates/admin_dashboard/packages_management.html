@@ -1,0 +1,501 @@
+{% extends 'print_service/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}مدیریت پکیج‌های ویژه{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-box text-success me-2"></i>مدیریت پکیج‌های ویژه
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:settings_dashboard' %}">تنظیمات</a></li>
+                    <li class="breadcrumb-item active">پکیج‌های ویژه</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت
+            </a>
+            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPackageModal">
+                <i class="fas fa-plus me-1"></i>افزودن پکیج جدید
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-box fa-2x text-success mb-3"></i>
+                    <h4 class="mb-1">{{ packages_count }}</h4>
+                    <p class="text-muted mb-0">کل پکیج‌ها</p>
+                    <small class="text-success">{{ active_packages_count }} فعال</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-percentage fa-2x text-warning mb-3"></i>
+                    <h4 class="mb-1">{{ avg_discount|floatformat:0 }}%</h4>
+                    <p class="text-muted mb-0">تخفیف متوسط</p>
+                    <small class="text-warning">در همه پکیج‌ها</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-star fa-2x text-primary mb-3"></i>
+                    <h4 class="mb-1">{{ featured_packages_count }}</h4>
+                    <p class="text-muted mb-0">پکیج‌های ویژه</p>
+                    <small class="text-primary">نمایش در صفحه اصلی</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-2x text-info mb-3"></i>
+                    <h4 class="mb-1">{{ total_orders }}</h4>
+                    <p class="text-muted mb-0">سفارشات پکیج</p>
+                    <small class="text-info">این ماه</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">جستجو</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ request.GET.search }}" placeholder="نام پکیج...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="status" class="form-label">وضعیت</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">همه</option>
+                                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>فعال</option>
+                                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>غیرفعال</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="service_type" class="form-label">نوع سرویس</label>
+                            <select class="form-select" id="service_type" name="service_type">
+                                <option value="">همه</option>
+                                <option value="print" {% if request.GET.service_type == 'print' %}selected{% endif %}>پرینت</option>
+                                <option value="typing" {% if request.GET.service_type == 'typing' %}selected{% endif %}>تایپ</option>
+                                <option value="both" {% if request.GET.service_type == 'both' %}selected{% endif %}>هر دو</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="sort" class="form-label">مرتب‌سازی</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="name" {% if request.GET.sort == 'name' %}selected{% endif %}>نام</option>
+                                <option value="price" {% if request.GET.sort == 'price' %}selected{% endif %}>قیمت</option>
+                                <option value="discount" {% if request.GET.sort == 'discount' %}selected{% endif %}>تخفیف</option>
+                                <option value="created" {% if request.GET.sort == 'created' %}selected{% endif %}>تاریخ ایجاد</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>جستجو
+                            </button>
+                            <a href="{% url 'admin_dashboard:packages_management' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>پاک کردن
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Packages Grid -->
+    <div class="row">
+        {% for package in packages %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <!-- Package Image -->
+                <div class="position-relative">
+                    {% if package.image %}
+                    <img src="{{ package.image.url }}" class="card-img-top" alt="{{ package.name }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="fas fa-box fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Status Badge -->
+                    <div class="position-absolute top-0 start-0 m-2">
+                        {% if package.is_active %}
+                        <span class="badge bg-success">فعال</span>
+                        {% else %}
+                        <span class="badge bg-secondary">غیرفعال</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Featured Badge -->
+                    {% if package.is_featured %}
+                    <div class="position-absolute top-0 end-0 m-2">
+                        <span class="badge bg-warning">ویژه</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Discount Badge -->
+                    {% if package.discount_percentage %}
+                    <div class="position-absolute bottom-0 start-0 m-2">
+                        <span class="badge bg-danger">{{ package.discount_percentage }}% تخفیف</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="card-body">
+                    <!-- Name and Description -->
+                    <h5 class="card-title">{{ package.name }}</h5>
+                    <p class="card-text text-muted small">{{ package.description|truncatechars:100 }}</p>
+                    
+                    <!-- Service Type -->
+                    <div class="mb-3">
+                        <span class="badge bg-info me-1">{{ package.get_service_type_display }}</span>
+                        {% if package.is_featured %}
+                        <span class="badge bg-warning">ویژه</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Pricing -->
+                    <div class="mb-3">
+                        {% if package.original_price and package.discounted_price %}
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted text-decoration-line-through me-2">{{ package.original_price|floatformat:0 }} تومان</span>
+                            <span class="fs-5 fw-bold text-danger">{{ package.discounted_price|floatformat:0 }} تومان</span>
+                        </div>
+                        {% else %}
+                        <span class="fs-5 fw-bold text-primary">{{ package.price|floatformat:0 }} تومان</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Package Details -->
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-list me-1"></i>
+                            شامل {{ package.accessories.count }} لوازم جانبی
+                        </small>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    onclick="editPackage({{ package.id }})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="deletePackage({{ package.id }})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>{{ package.created_at|date:"Y-m-d" }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">هیچ پکیجی یافت نشد</h5>
+                    <p class="text-muted">برای شروع، یک پکیج جدید ایجاد کنید.</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPackageModal">
+                        <i class="fas fa-plus me-1"></i>افزودن پکیج جدید
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if packages.has_other_pages %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Package pagination">
+                <ul class="pagination justify-content-center">
+                    {% if packages.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ packages.previous_page_number }}&{{ request.GET.urlencode }}">قبلی</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in packages.paginator.page_range %}
+                    {% if packages.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > packages.number|add:'-3' and num < packages.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    
+                    {% if packages.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ packages.next_page_number }}&{{ request.GET.urlencode }}">بعدی</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add/Edit Package Modal -->
+<div class="modal fade" id="packageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="packageModalTitle">افزودن پکیج جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="packageForm">
+                    <input type="hidden" id="package_id" name="package_id">
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="package_name" class="form-label">نام پکیج *</label>
+                                <input type="text" class="form-control" id="package_name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="package_service_type" class="form-label">نوع سرویس *</label>
+                                <select class="form-select" id="package_service_type" name="service_type" required>
+                                    <option value="print">سرویس پرینت</option>
+                                    <option value="typing">سرویس تایپ</option>
+                                    <option value="both">هر دو سرویس</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="package_description" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="package_description" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="package_price" class="form-label">قیمت (تومان) *</label>
+                                <input type="number" class="form-control" id="package_price" name="price" min="0" step="1000" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="package_discount" class="form-label">درصد تخفیف</label>
+                                <input type="number" class="form-control" id="package_discount" name="discount_percentage" min="0" max="100" step="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="package_accessories" class="form-label">لوازم جانبی</label>
+                                <select class="form-select" id="package_accessories" name="accessories" multiple>
+                                    {% for accessory in accessories %}
+                                    <option value="{{ accessory.id }}">{{ accessory.name }} - {{ accessory.base_price|floatformat:0 }} تومان</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">می‌توانید چندین لوازم جانبی انتخاب کنید</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="package_image" class="form-label">تصویر پکیج</label>
+                                <input type="file" class="form-control" id="package_image" name="image" accept="image/*">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="package_is_active" name="is_active" checked>
+                                <label class="form-check-label" for="package_is_active">فعال</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="package_is_featured" name="is_featured">
+                                <label class="form-check-label" for="package_is_featured">ویژه</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="package_sort_order" class="form-label">ترتیب نمایش</label>
+                                <input type="number" class="form-control" id="package_sort_order" name="sort_order" value="0" min="0">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-success" onclick="savePackage()">
+                    <i class="fas fa-save me-1"></i>ذخیره پکیج
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePackageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">حذف پکیج</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا مطمئن هستید که می‌خواهید این پکیج را حذف کنید؟</p>
+                <p class="text-danger"><strong>این عملیات قابل بازگشت نیست.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-danger" onclick="confirmDeletePackage()">
+                    <i class="fas fa-trash me-1"></i>حذف
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPackageId = null;
+
+function editPackage(packageId) {
+    currentPackageId = packageId;
+    
+    // Fetch package data
+    fetch(`/admin-panel/packages/${packageId}/edit/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const package = data.package;
+                
+                // Fill form fields
+                document.getElementById('package_id').value = package.id;
+                document.getElementById('package_name').value = package.name;
+                document.getElementById('package_description').value = package.description;
+                document.getElementById('package_service_type').value = package.service_type;
+                document.getElementById('package_price').value = package.price;
+                document.getElementById('package_discount').value = package.discount_percentage || '';
+                document.getElementById('package_is_active').checked = package.is_active;
+                document.getElementById('package_is_featured').checked = package.is_featured;
+                document.getElementById('package_sort_order').value = package.sort_order;
+                
+                // Set selected accessories
+                const accessoriesSelect = document.getElementById('package_accessories');
+                Array.from(accessoriesSelect.options).forEach(option => {
+                    option.selected = package.accessories.includes(parseInt(option.value));
+                });
+                
+                document.getElementById('packageModalTitle').textContent = 'ویرایش پکیج';
+                new bootstrap.Modal(document.getElementById('packageModal')).show();
+            } else {
+                alert('خطا در بارگذاری اطلاعات پکیج');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('خطا در ارتباط با سرور');
+        });
+}
+
+function savePackage() {
+    const formData = new FormData(document.getElementById('packageForm'));
+    
+    fetch('/admin-panel/packages/save/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('خطا در ذخیره پکیج: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور');
+    });
+}
+
+function deletePackage(packageId) {
+    currentPackageId = packageId;
+    new bootstrap.Modal(document.getElementById('deletePackageModal')).show();
+}
+
+function confirmDeletePackage() {
+    fetch(`/admin-panel/packages/${currentPackageId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('خطا در حذف پکیج: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور');
+    });
+}
+
+// Reset form when adding new package
+document.getElementById('addPackageModal').addEventListener('show.bs.modal', function() {
+    document.getElementById('packageForm').reset();
+    document.getElementById('package_id').value = '';
+    document.getElementById('packageModalTitle').textContent = 'افزودن پکیج جدید';
+    currentPackageId = null;
+});
+</script>
+{% endblock %} 

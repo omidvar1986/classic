@@ -10,11 +10,13 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from decimal import Decimal
-
+from datetime import timedelta
 from .models import (
     Category, Brand, Product, ProductImage, ProductAttribute, ProductReview,
-    Cart, CartItem, Order, OrderItem, Wishlist, Coupon, Banner
+    Cart, CartItem, Order, OrderItem, Wishlist, Coupon, Banner, PaymentReceipt
 )
+from print_service.models import PaymentSettings
+import json
 
 def shop_home(request):
     """Main shop homepage with featured products and categories"""
@@ -284,6 +286,7 @@ def cart_view(request):
     
     context = {
         'cart': cart,
+        'cart_items': cart.items.all(),
     }
     
     return render(request, 'digital_shop/cart.html', context)
@@ -371,6 +374,8 @@ def checkout(request):
             tax_amount=tax_amount,
             discount_amount=discount_amount,
             total_amount=total_amount,
+            status='pending_payment',
+            payment_status='pending',
         )
         
         # Create order items
@@ -388,11 +393,12 @@ def checkout(request):
         # Clear cart
         cart.items.all().delete()
         
-        messages.success(request, _('Order placed successfully!'))
-        return redirect('digital_shop:order_detail', order_number=order.order_number)
+        messages.success(request, _('Order placed successfully! Please complete your payment.'))
+        return redirect('digital_shop:payment_page', order_id=order.id)
     
     context = {
         'cart': cart,
+        'cart_items': cart.items.all(),
     }
     
     return render(request, 'digital_shop/checkout.html', context)
@@ -529,6 +535,87 @@ def search_products(request):
     
     return JsonResponse({'results': []})
 
+@login_required
+@csrf_exempt
+def update_cart_item(request, item_id):
+    """Update cart item quantity via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            quantity = int(data.get('quantity', 1))
+            
+            if quantity <= 0:
+                return JsonResponse({'success': False, 'error': 'تعداد باید بیشتر از 0 باشد'})
+            
+            cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+            cart_item.quantity = quantity
+            cart_item.save()
+            
+            return JsonResponse({'success': True})
+            
+        except CartItem.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'آیتم یافت نشد'})
+        except (ValueError, KeyError):
+            return JsonResponse({'success': False, 'error': 'داده‌های نامعتبر'})
+    
+    return JsonResponse({'success': False, 'error': 'متد نامعتبر'})
+
+@login_required
+@csrf_exempt
+def remove_cart_item(request, item_id):
+    """Remove cart item via AJAX"""
+    if request.method == 'POST':
+        try:
+            cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+            cart_item.delete()
+            return JsonResponse({'success': True})
+            
+        except CartItem.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'آیتم یافت نشد'})
+    
+    return JsonResponse({'success': False, 'error': 'متد نامعتبر'})
+
+@login_required
+@csrf_exempt
+def apply_coupon(request):
+    """Apply coupon code via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            coupon_code = data.get('coupon_code', '').strip()
+            
+            if not coupon_code:
+                return JsonResponse({'success': False, 'error': 'کد تخفیف را وارد کنید'})
+            
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, is_active=True)
+                
+                if not coupon.is_valid:
+                    return JsonResponse({'success': False, 'error': 'کد تخفیف منقضی شده است'})
+                
+                cart, created = Cart.objects.get_or_create(user=request.user)
+                
+                if cart.total_price < coupon.minimum_order_amount:
+                    return JsonResponse({
+                        'success': False, 
+                        'error': f'حداقل مبلغ سفارش برای این کد تخفیف {coupon.minimum_order_amount} تومان است'
+                    })
+                
+                # Apply coupon logic here
+                # For now, just return success
+                return JsonResponse({
+                    'success': True, 
+                    'message': f'کد تخفیف {coupon.description} اعمال شد'
+                })
+                
+            except Coupon.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'کد تخفیف نامعتبر است'})
+                
+        except (ValueError, KeyError):
+            return JsonResponse({'success': False, 'error': 'داده‌های نامعتبر'})
+    
+    return JsonResponse({'success': False, 'error': 'متد نامعتبر'})
+
 def about_us(request):
     """About us page"""
     return render(request, 'digital_shop/about.html')
@@ -544,3 +631,74 @@ def terms_conditions(request):
 def privacy_policy(request):
     """Privacy policy page"""
     return render(request, 'digital_shop/privacy.html')
+
+@login_required
+def payment_page(request, order_id):
+    """Payment page for manual payment (Nobitex-style)"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Check if order is in pending payment status
+    if order.status != 'pending_payment':
+        messages.error(request, 'این سفارش در وضعیت پرداخت نیست.')
+        return redirect('digital_shop:order_detail', order_id=order.id)
+    
+    # Get payment settings
+    payment_settings = PaymentSettings.objects.filter(is_active=True).first()
+    if not payment_settings:
+        messages.error(request, 'تنظیمات پرداخت در دسترس نیست.')
+        return redirect('digital_shop:order_detail', order_id=order.id)
+    
+    # Calculate order expiry date
+    from datetime import timedelta
+    order_expiry = order.created_at + timedelta(hours=payment_settings.order_validity_hours)
+    
+    if request.method == 'POST':
+        # Handle receipt upload
+        try:
+            receipt = PaymentReceipt.objects.create(
+                order=order,
+                receipt_image=request.FILES['receipt_image'],
+                transaction_id=request.POST.get('transaction_id', ''),
+                depositor_name=request.POST.get('depositor_name', ''),
+                amount_paid=request.POST.get('amount_paid'),
+                status='pending'
+            )
+            
+            # Set deposit date if provided
+            if request.POST.get('deposit_date'):
+                receipt.deposit_date = request.POST.get('deposit_date')
+                receipt.save()
+            
+            # Update order status
+            order.status = 'pending_payment'
+            order.payment_status = 'pending'
+            order.save()
+            
+            messages.success(request, 'رسید پرداخت با موفقیت ارسال شد. تیم پشتیبانی در کمتر از 24 ساعت آن را بررسی خواهد کرد.')
+            return redirect('digital_shop:order_detail', order_id=order.id)
+            
+        except Exception as e:
+            messages.error(request, f'خطا در ارسال رسید: {str(e)}')
+    
+    context = {
+        'order': order,
+        'payment_settings': payment_settings,
+        'order_expiry': order_expiry,
+    }
+    
+    return render(request, 'digital_shop/payment_page.html', context)
+
+@login_required
+def order_detail(request, order_id):
+    """Order detail page with payment status"""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Get payment receipt if exists
+    payment_receipt = order.payment_receipts.first()
+    
+    context = {
+        'order': order,
+        'payment_receipt': payment_receipt,
+    }
+    
+    return render(request, 'digital_shop/order_detail.html', context)

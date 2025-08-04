@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
+from digital_shop.models import PaymentReceipt
 
 # فقط کاربران staff یا superuser دسترسی داشته باشند
 def staff_required(view_func):
@@ -370,39 +371,7 @@ def approve_final_download(request, order_id):
     messages.success(request, f"دانلود برای سفارش {order.id} آزاد شد.")
     return redirect('admin_dashboard:dashboard')
 
-@staff_required
-def settings_view(request):
-    """Main settings dashboard with links to all management sections"""
-    # Get statistics for the dashboard
-    total_accessories = Accessory.objects.count()
-    active_accessories = Accessory.objects.filter(is_active=True).count()
-    total_packages = PackageDeal.objects.count()
-    active_packages = PackageDeal.objects.filter(is_active=True).count()
-    
-    # Get current settings
-    print_settings = PrintPriceSettings.objects.first()
-    typing_settings = TypingPriceSettings.objects.first()
-    payment_settings = PaymentSettings.objects.first()
-    
-    context = {
-        'stats': {
-            'accessories': {
-                'total': total_accessories,
-                'active': active_accessories,
-            },
-            'packages': {
-                'total': total_packages,
-                'active': active_packages,
-            }
-        },
-        'settings': {
-            'print': print_settings,
-            'typing': typing_settings,
-            'payment': payment_settings,
-        }
-    }
-    
-    return render(request, 'admin_dashboard/settings.html', context)
+
 
 @staff_required
 def finalize_order(request, order_id):
@@ -427,67 +396,6 @@ def direct_admin_access(request):
     else:
         messages.error(request, 'You need to be logged in as a staff member or superuser to access this page.')
         return redirect('accounts:login')
-
-# ============================================================================
-# SETTINGS MANAGEMENT VIEWS
-# ============================================================================
-
-@staff_required
-def print_pricing_view(request):
-    """Manage print service pricing settings"""
-    settings, created = PrintPriceSettings.objects.get_or_create(id=1)
-    
-    if request.method == 'POST':
-        form = PrintPriceSettingsForm(request.POST, instance=settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _('Print pricing settings updated successfully!'))
-            return redirect('admin_dashboard:print_pricing')
-    else:
-        form = PrintPriceSettingsForm(instance=settings)
-
-    return render(request, 'admin_dashboard/print_pricing.html', {
-        'form': form,
-        'settings': settings
-    })
-
-@staff_required
-def typing_pricing_view(request):
-    """Manage typing service pricing settings"""
-    settings, created = TypingPriceSettings.objects.get_or_create(id=1)
-    
-    if request.method == 'POST':
-        form = TypingPriceSettingsForm(request.POST, instance=settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _('Typing pricing settings updated successfully!'))
-            return redirect('admin_dashboard:typing_pricing')
-    else:
-        form = TypingPriceSettingsForm(instance=settings)
-
-    return render(request, 'admin_dashboard/typing_pricing.html', {
-        'form': form,
-        'settings': settings
-    })
-
-@staff_required
-def payment_settings_view(request):
-    """Manage payment settings"""
-    settings, created = PaymentSettings.objects.get_or_create(id=1)
-    
-    if request.method == 'POST':
-        form = PaymentSettingsForm(request.POST, instance=settings)
-        if form.is_valid():
-            form.save()
-            messages.success(request, _('Payment settings updated successfully!'))
-            return redirect('admin_dashboard:payment_settings')
-    else:
-        form = PaymentSettingsForm(instance=settings)
-
-    return render(request, 'admin_dashboard/payment_settings.html', {
-        'form': form,
-        'settings': settings
-    })
 
 # ============================================================================
 # ACCESSORIES MANAGEMENT VIEWS
@@ -1297,3 +1205,321 @@ def delete_accessory(request, accessory_id):
         return JsonResponse({'success': True, 'message': 'لوازم جانبی با موفقیت حذف شد'})
     except Accessory.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'لوازم جانبی یافت نشد'}, status=404)
+
+@login_required
+def settings_dashboard(request):
+    """Settings dashboard with comprehensive management"""
+    # Get statistics
+    accessories_count = Accessory.objects.count()
+    active_accessories_count = Accessory.objects.filter(is_active=True).count()
+    featured_accessories_count = Accessory.objects.filter(is_featured=True).count()
+    
+    # Get pricing data
+    print_pricing = PrintPriceSettings.objects.first()
+    typing_pricing = TypingPriceSettings.objects.first()
+    
+    # Calculate average bulk discount for print
+    avg_bulk_discount = 0
+    if print_pricing:
+        discounts = [
+            float(print_pricing.bulk_discount_10),
+            float(print_pricing.bulk_discount_50),
+            float(print_pricing.bulk_discount_100)
+        ]
+        avg_bulk_discount = sum(discounts) / len(discounts) * 100
+    
+    # Get order statistics
+    current_month = timezone.now().month
+    print_orders_count = PrintOrder.objects.count()
+    pending_print_orders = PrintOrder.objects.filter(status='pending').count()
+    typing_orders_count = TypingOrder.objects.count()
+    pending_typing_orders = TypingOrder.objects.filter(status='pending').count()
+    
+    # Get payment settings
+    payment_settings = PaymentSettings.objects.first()
+    bank_name = payment_settings.bank_name if payment_settings else None
+    card_number = payment_settings.card_number if payment_settings else None
+    
+    # Mock data for packages (you'll need to create Package model)
+    packages_count = 0
+    active_packages_count = 0
+    avg_discount = 0
+    total_orders = 0
+    
+    # Mock recent activities
+    recent_activities = []
+    
+    context = {
+        'accessories_count': accessories_count,
+        'active_accessories_count': active_accessories_count,
+        'featured_accessories_count': featured_accessories_count,
+        'packages_count': packages_count,
+        'active_packages_count': active_packages_count,
+        'avg_discount': avg_discount,
+        'total_orders': total_orders,
+        'print_orders_count': print_orders_count,
+        'pending_print_orders': pending_print_orders,
+        'typing_orders_count': typing_orders_count,
+        'pending_typing_orders': pending_typing_orders,
+        'print_base_price': print_pricing.base_price_per_page if print_pricing else 0,
+        'typing_price_per_page': typing_pricing.price_per_page if typing_pricing else 0,
+        'avg_bulk_discount': avg_bulk_discount,
+        'bank_name': bank_name,
+        'card_number': card_number,
+        'recent_activities': recent_activities,
+    }
+    
+    return render(request, 'admin_dashboard/settings_dashboard.html', context)
+
+@login_required
+def print_pricing(request):
+    """Print pricing management"""
+    pricing = PrintPriceSettings.objects.first()
+    if not pricing:
+        pricing = PrintPriceSettings.objects.create()
+    
+    # Calculate average bulk discount
+    discounts = [
+        float(pricing.bulk_discount_10),
+        float(pricing.bulk_discount_50),
+        float(pricing.bulk_discount_100)
+    ]
+    avg_bulk_discount = (1 - sum(discounts) / len(discounts)) * 100
+    
+    context = {
+        'pricing': pricing,
+        'avg_bulk_discount': avg_bulk_discount,
+    }
+    
+    return render(request, 'admin_dashboard/print_pricing.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def save_print_pricing(request):
+    """Save print pricing settings"""
+    try:
+        pricing = PrintPriceSettings.objects.first()
+        if not pricing:
+            pricing = PrintPriceSettings.objects.create()
+        
+        # Update pricing fields
+        pricing.base_price_per_page = request.POST.get('base_price_per_page')
+        pricing.color_price_multiplier = request.POST.get('color_price_multiplier')
+        pricing.double_sided_discount = request.POST.get('double_sided_discount')
+        pricing.a4_price = request.POST.get('a4_price')
+        pricing.a3_price = request.POST.get('a3_price')
+        pricing.a5_price = request.POST.get('a5_price')
+        pricing.letter_price = request.POST.get('letter_price')
+        pricing.bulk_discount_10 = request.POST.get('bulk_discount_10')
+        pricing.bulk_discount_50 = request.POST.get('bulk_discount_50')
+        pricing.bulk_discount_100 = request.POST.get('bulk_discount_100')
+        
+        pricing.save()
+        
+        return JsonResponse({'success': True, 'message': 'تنظیمات قیمت‌گذاری پرینت با موفقیت ذخیره شد'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+def typing_pricing(request):
+    """Typing pricing management"""
+    pricing = TypingPriceSettings.objects.first()
+    if not pricing:
+        pricing = TypingPriceSettings.objects.create()
+    
+    # Calculate average bulk discount
+    discounts = [
+        float(pricing.bulk_discount_5),
+        float(pricing.bulk_discount_10),
+        float(pricing.bulk_discount_20)
+    ]
+    avg_bulk_discount = (1 - sum(discounts) / len(discounts)) * 100
+    
+    context = {
+        'pricing': pricing,
+        'avg_bulk_discount': avg_bulk_discount,
+    }
+    
+    return render(request, 'admin_dashboard/typing_pricing.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def save_typing_pricing(request):
+    """Save typing pricing settings"""
+    try:
+        pricing = TypingPriceSettings.objects.first()
+        if not pricing:
+            pricing = TypingPriceSettings.objects.create()
+        
+        # Update pricing fields
+        pricing.price_per_page = request.POST.get('price_per_page')
+        pricing.urgent_price_multiplier = request.POST.get('urgent_price_multiplier')
+        pricing.bulk_discount_5 = request.POST.get('bulk_discount_5')
+        pricing.bulk_discount_10 = request.POST.get('bulk_discount_10')
+        pricing.bulk_discount_20 = request.POST.get('bulk_discount_20')
+        pricing.email_delivery_price = request.POST.get('email_delivery_price')
+        pricing.print_delivery_price = request.POST.get('print_delivery_price')
+        
+        pricing.save()
+        
+        return JsonResponse({'success': True, 'message': 'تنظیمات قیمت‌گذاری تایپ با موفقیت ذخیره شد'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+def packages_management(request):
+    """Package deals management"""
+    # Get search and filter parameters
+    search = request.GET.get('search', '')
+    status = request.GET.get('status', '')
+    service_type = request.GET.get('service_type', '')
+    sort = request.GET.get('sort', 'name')
+    
+    # Mock packages data (you'll need to create Package model)
+    packages = []
+    packages_count = 0
+    active_packages_count = 0
+    featured_packages_count = 0
+    avg_discount = 0
+    total_orders = 0
+    
+    # Get accessories for package form
+    accessories = Accessory.objects.filter(is_active=True).order_by('name')
+    
+    context = {
+        'packages': packages,
+        'packages_count': packages_count,
+        'active_packages_count': active_packages_count,
+        'featured_packages_count': featured_packages_count,
+        'avg_discount': avg_discount,
+        'total_orders': total_orders,
+        'accessories': accessories,
+    }
+    
+    return render(request, 'admin_dashboard/packages_management.html', context)
+
+@login_required
+def payment_settings(request):
+    """Payment settings management"""
+    settings = PaymentSettings.objects.first()
+    if not settings:
+        settings = PaymentSettings.objects.create()
+    
+    if request.method == 'POST':
+        settings.bank_name = request.POST.get('bank_name')
+        settings.card_number = request.POST.get('card_number')
+        settings.account_holder = request.POST.get('account_holder')
+        settings.save()
+        return redirect('admin_dashboard:payment_settings')
+    
+    context = {
+        'settings': settings,
+    }
+    
+    return render(request, 'admin_dashboard/payment_settings.html', context)
+
+@login_required
+def payment_receipts_management(request):
+    """Manage payment receipts (Nobitex-style admin panel)"""
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    date_filter = request.GET.get('date', '')
+    
+    receipts = PaymentReceipt.objects.select_related('order', 'order__user').all()
+    
+    # Apply filters
+    if status_filter:
+        receipts = receipts.filter(status=status_filter)
+    
+    if date_filter:
+        receipts = receipts.filter(created_at__date=date_filter)
+    
+    # Get statistics
+    total_receipts = PaymentReceipt.objects.count()
+    pending_receipts = PaymentReceipt.objects.filter(status='pending').count()
+    approved_receipts = PaymentReceipt.objects.filter(status='approved').count()
+    rejected_receipts = PaymentReceipt.objects.filter(status='rejected').count()
+    
+    # Pagination
+    paginator = Paginator(receipts, 20)
+    page_number = request.GET.get('page')
+    receipts_page = paginator.get_page(page_number)
+    
+    context = {
+        'receipts': receipts_page,
+        'total_receipts': total_receipts,
+        'pending_receipts': pending_receipts,
+        'approved_receipts': approved_receipts,
+        'rejected_receipts': rejected_receipts,
+        'status_filter': status_filter,
+        'date_filter': date_filter,
+    }
+    
+    return render(request, 'admin_dashboard/payment_receipts_management.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def approve_payment_receipt(request, receipt_id):
+    """Approve a payment receipt"""
+    try:
+        receipt = PaymentReceipt.objects.get(id=receipt_id)
+        receipt.status = 'approved'
+        receipt.admin_note = request.POST.get('admin_note', '')
+        receipt.save()
+        
+        # Update order status
+        order = receipt.order
+        order.status = 'confirmed'
+        order.payment_status = 'paid'
+        order.paid_at = timezone.now()
+        order.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'پرداخت با موفقیت تایید شد'
+        })
+        
+    except PaymentReceipt.DoesNotExist:
+        return JsonResponse({
+            'success': False, 
+            'error': 'رسید پرداخت یافت نشد'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=400)
+
+@login_required
+@require_http_methods(["POST"])
+def reject_payment_receipt(request, receipt_id):
+    """Reject a payment receipt"""
+    try:
+        receipt = PaymentReceipt.objects.get(id=receipt_id)
+        receipt.status = 'rejected'
+        receipt.admin_note = request.POST.get('admin_note', '')
+        receipt.save()
+        
+        # Update order status
+        order = receipt.order
+        order.status = 'pending_payment'
+        order.payment_status = 'failed'
+        order.save()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'پرداخت رد شد'
+        })
+        
+    except PaymentReceipt.DoesNotExist:
+        return JsonResponse({
+            'success': False, 
+            'error': 'رسید پرداخت یافت نشد'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=400)

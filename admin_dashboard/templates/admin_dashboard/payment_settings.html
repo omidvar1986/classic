@@ -1,148 +1,141 @@
 {% extends 'print_service/base.html' %}
+{% load static %}
 {% load i18n %}
 
-{% block title %}{% trans "Payment Settings" %}{% endblock %}
+{% block title %}تنظیمات پرداخت{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-credit-card me-2"></i>{% trans "Payment Settings" %}</h2>
-                <a href="{% url 'admin_dashboard:settings' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Settings" %}
-                </a>
-            </div>
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-credit-card text-info me-2"></i>تنظیمات پرداخت
+            </h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:settings_dashboard' %}">تنظیمات</a></li>
+                    <li class="breadcrumb-item active">تنظیمات پرداخت</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>بازگشت
+            </a>
         </div>
     </div>
 
+    <!-- Payment Settings Form -->
     <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>{% trans "Bank Information" %}</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-university me-2"></i>اطلاعات بانکی
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         
-                        <!-- Bank Name -->
-                        <div class="mb-4">
-                            <label for="{{ form.bank_name.id_for_label }}" class="form-label">
-                                <strong>{{ form.bank_name.label }}</strong>
-                            </label>
-                            {{ form.bank_name }}
-                            {% if form.bank_name.help_text %}
-                                <div class="form-text">{{ form.bank_name.help_text }}</div>
-                            {% endif %}
-                            {% if form.bank_name.errors %}
-                                <div class="text-danger small mt-1">{{ form.bank_name.errors.as_text }}</div>
-                            {% endif %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bank_name" class="form-label">نام بانک *</label>
+                                <input type="text" class="form-control" id="bank_name" name="bank_name" 
+                                       value="{{ settings.bank_name|default:'' }}" required>
+                                <div class="form-text">مثال: بانک ملی ایران</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="card_number" class="form-label">شماره کارت *</label>
+                                <input type="text" class="form-control" id="card_number" name="card_number" 
+                                       value="{{ settings.card_number|default:'' }}" required>
+                                <div class="form-text">شماره ۱۶ رقمی کارت بانکی</div>
+                            </div>
                         </div>
-
-                        <!-- Account Number -->
-                        <div class="mb-4">
-                            <label for="{{ form.account_number.id_for_label }}" class="form-label">
-                                <strong>{{ form.account_number.label }}</strong>
-                            </label>
-                            {{ form.account_number }}
-                            {% if form.account_number.help_text %}
-                                <div class="form-text">{{ form.account_number.help_text }}</div>
-                            {% endif %}
-                            {% if form.account_number.errors %}
-                                <div class="text-danger small mt-1">{{ form.account_number.errors.as_text }}</div>
-                            {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="account_holder" class="form-label">صاحب حساب</label>
+                                <input type="text" class="form-control" id="account_holder" name="account_holder" 
+                                       value="{{ settings.account_holder|default:'' }}">
+                                <div class="form-text">نام صاحب حساب کارت</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="shaba_number" class="form-label">شماره شبا</label>
+                                <input type="text" class="form-control" id="shaba_number" name="shaba_number" 
+                                       value="{{ settings.shaba_number|default:'' }}">
+                                <div class="form-text">شماره شبا (اختیاری)</div>
+                            </div>
                         </div>
-
-                        <!-- Card Number -->
-                        <div class="mb-4">
-                            <label for="{{ form.card_number.id_for_label }}" class="form-label">
-                                <strong>{{ form.card_number.label }}</strong>
-                            </label>
-                            {{ form.card_number }}
-                            {% if form.card_number.help_text %}
-                                <div class="form-text">{{ form.card_number.help_text }}</div>
-                            {% endif %}
-                            {% if form.card_number.errors %}
-                                <div class="text-danger small mt-1">{{ form.card_number.errors.as_text }}</div>
-                            {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="payment_instructions" class="form-label">دستورالعمل پرداخت</label>
+                            <textarea class="form-control" id="payment_instructions" name="payment_instructions" rows="4">{{ settings.payment_instructions|default:'' }}</textarea>
+                            <div class="form-text">دستورالعمل‌های پرداخت برای مشتریان</div>
                         </div>
-
-                        <!-- Shaba Number -->
-                        <div class="mb-4">
-                            <label for="{{ form.shaba_number.id_for_label }}" class="form-label">
-                                <strong>{{ form.shaba_number.label }}</strong>
-                            </label>
-                            {{ form.shaba_number }}
-                            {% if form.shaba_number.help_text %}
-                                <div class="form-text">{{ form.shaba_number.help_text }}</div>
-                            {% endif %}
-                            {% if form.shaba_number.errors %}
-                                <div class="text-danger small mt-1">{{ form.shaba_number.errors.as_text }}</div>
-                            {% endif %}
-                        </div>
-
+                        
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-info btn-lg">
-                                <i class="fas fa-save me-2"></i>{% trans "Save Payment Settings" %}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>ذخیره تنظیمات پرداخت
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Current Settings -->
-        <div class="col-lg-4">
-            <div class="card">
+    <!-- Current Settings Preview -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>{% trans "Current Settings" %}</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>تنظیمات فعلی
+                    </h5>
                 </div>
                 <div class="card-body">
-                    {% if settings %}
-                        <div class="mb-3">
-                            <small class="text-muted">{% trans "Bank Name:" %}</small>
-                            <div class="fw-bold">{{ settings.bank_name|default:"Not set" }}</div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded mb-3">
+                                <i class="fas fa-university fa-2x text-info me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">بانک</h6>
+                                    <p class="mb-0 text-muted">{{ settings.bank_name|default:"تنظیم نشده" }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted">{% trans "Account Number:" %}</small>
-                            <div class="fw-bold">{{ settings.account_number|default:"Not set" }}</div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded mb-3">
+                                <i class="fas fa-credit-card fa-2x text-success me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">شماره کارت</h6>
+                                    <p class="mb-0 text-muted">{{ settings.card_number|default:"تنظیم نشده" }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted">{% trans "Card Number:" %}</small>
-                            <div class="fw-bold">{{ settings.card_number|default:"Not set" }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-user fa-2x text-warning me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">صاحب حساب</h6>
+                                    <p class="mb-0 text-muted">{{ settings.account_holder|default:"تنظیم نشده" }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted">{% trans "Shaba Number:" %}</small>
-                            <div class="fw-bold">{{ settings.shaba_number|default:"Not set" }}</div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fas fa-calendar fa-2x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">آخرین بروزرسانی</h6>
+                                    <p class="mb-0 text-muted">{{ settings.updated_at|date:"Y-m-d H:i"|default:"هیچ‌وقت" }}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted">{% trans "Last Updated:" %}</small>
-                            <div class="fw-bold">{{ settings.updated_at|date:"M d, Y H:i" }}</div>
-                        </div>
-                    {% else %}
-                        <div class="text-center text-muted">
-                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                            <p>{% trans "No payment settings configured yet." %}</p>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Help Information -->
-            <div class="card mt-3">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>{% trans "Help" %}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <h6>{% trans "Payment Information Guidelines:" %}</h6>
-                        <ul class="mb-0">
-                            <li>{% trans "Bank Name: Full name of the bank (e.g., Bank Melli Iran)" %}</li>
-                            <li>{% trans "Account Number: Bank account number (minimum 8 digits)" %}</li>
-                            <li>{% trans "Card Number: Bank card number (13-19 digits)" %}</li>
-                            <li>{% trans "Shaba Number: IBAN/Shaba number starting with 'IR' (26 characters)" %}</li>
-                        </ul>
                     </div>
                 </div>
             </div>

@@ -1,0 +1,100 @@
+{% extends 'digital_shop/base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}علاقه‌مندی‌ها{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fas fa-heart me-2"></i>علاقه‌مندی‌های من
+            </h4>
+        </div>
+        <div class="card-body">
+            {% if wishlist_items %}
+            <div class="row">
+                {% for item in wishlist_items %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 border-0 shadow-sm product-card">
+                        <div class="position-relative">
+                            {% if item.product.images.first %}
+                            <img src="{{ item.product.images.first.image.url }}" 
+                                 class="card-img-top" 
+                                 alt="{{ item.product.name }}"
+                                 style="height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.product.is_on_sale %}
+                            <span class="badge bg-danger position-absolute top-0 start-0 m-2">تخفیف</span>
+                            {% endif %}
+                            
+                            {% if item.product.is_new %}
+                            <span class="badge bg-success position-absolute top-0 end-0 m-2">جدید</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">{{ item.product.name }}</h6>
+                            <p class="card-text text-muted small">{{ item.product.short_description|truncatewords:10 }}</p>
+                            
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="fw-bold text-primary">{{ item.product.price|floatformat:0 }} تومان</span>
+                                        {% if item.product.compare_price and item.product.compare_price > item.product.price %}
+                                        <br><small class="text-muted text-decoration-line-through">
+                                            {{ item.product.compare_price|floatformat:0 }} تومان
+                                        </small>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted">{{ item.product.category.name }}</small>
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'digital_shop:product_detail' item.product.slug %}" 
+                                       class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>مشاهده
+                                    </a>
+                                    <form method="post" action="{% url 'digital_shop:add_to_cart' item.product.id %}" 
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-cart-plus me-1"></i>افزودن به سبد
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'digital_shop:remove_from_wishlist' item.product.id %}" 
+                                          class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-heart-broken me-1"></i>حذف از علاقه‌مندی
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">لیست علاقه‌مندی‌های شما خالی است</h5>
+                <p class="text-muted">محصولات مورد علاقه خود را به این لیست اضافه کنید</p>
+                <a href="{% url 'digital_shop:product_list' %}" class="btn btn-primary">
+                    <i class="fas fa-shopping-bag me-2"></i>مشاهده محصولات
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

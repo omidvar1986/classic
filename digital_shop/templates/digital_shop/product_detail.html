@@ -1,4 +1,4 @@
-{% extends 'print_service/base.html' %}
+{% extends 'digital_shop/base.html' %}
 {% load i18n %}
 {% load static %}
 
@@ -119,7 +119,7 @@
                 <!-- Add to Cart Section -->
                 {% if product.stock_quantity > 0 %}
                 <div class="add-to-cart-section mb-4">
-                    <form id="addToCartForm">
+                    <form method="post" action="{% url 'digital_shop:add_to_cart' product.id %}">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-4">
@@ -142,9 +142,12 @@
 
                 <!-- Wishlist -->
                 <div class="wishlist-section mb-4">
-                    <button class="btn btn-outline-primary" onclick="toggleWishlist({{ product.id }})">
-                        <i class="fas fa-heart me-2"></i>افزودن به لیست علاقه‌مندی
-                    </button>
+                    <form method="post" action="{% url 'digital_shop:add_to_wishlist' product.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-heart me-2"></i>افزودن به لیست علاقه‌مندی
+                        </button>
+                    </form>
                 </div>
 
                 <!-- Product Actions -->
@@ -323,52 +326,6 @@ function changeMainImage(imageUrl) {
     document.getElementById('mainImage').src = imageUrl;
 }
 
-function addToCart(productId, quantity) {
-    fetch(`/shop/cart/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            quantity: quantity
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Product added to cart successfully!');
-        } else {
-            alert('Error adding product to cart');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error adding product to cart');
-    });
-}
-
-function toggleWishlist(productId) {
-    fetch(`/shop/wishlist/toggle/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-        } else {
-            alert('Error updating wishlist');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating wishlist');
-    });
-}
-
 function shareProduct() {
     if (navigator.share) {
         navigator.share({
@@ -387,12 +344,7 @@ function printProduct() {
     window.print();
 }
 
-// Handle add to cart form submission
-document.getElementById('addToCartForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const quantity = document.getElementById('quantity').value;
-    addToCart({{ product.id }}, quantity);
-});
+
 
 // Handle review form submission
 document.getElementById('reviewForm').addEventListener('submit', function(e) {

@@ -1,0 +1,156 @@
+{% extends 'digital_shop/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}تکمیل سفارش{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Checkout Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i>تکمیل سفارش
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="checkoutForm">
+                        {% csrf_token %}
+                        
+                        <!-- Customer Information -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-user me-2"></i>اطلاعات مشتری
+                        </h5>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_name" class="form-label">نام و نام خانوادگی *</label>
+                                    <input type="text" class="form-control" id="customer_name" name="customer_name" 
+                                           value="{{ user.get_full_name|default:user.username }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_email" class="form-label">ایمیل *</label>
+                                    <input type="email" class="form-control" id="customer_email" name="customer_email" 
+                                           value="{{ user.email }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_phone" class="form-label">شماره تلفن *</label>
+                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shipping Information -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-truck me-2"></i>آدرس ارسال
+                        </h5>
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="shipping_address" class="form-label">آدرس کامل *</label>
+                                    <textarea class="form-control" id="shipping_address" name="shipping_address" 
+                                              rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shipping_city" class="form-label">شهر *</label>
+                                    <input type="text" class="form-control" id="shipping_city" name="shipping_city" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="shipping_postal_code" class="form-label">کد پستی</label>
+                                    <input type="text" class="form-control" id="shipping_postal_code" name="shipping_postal_code">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Notes -->
+                        <div class="mb-4">
+                            <label for="customer_notes" class="form-label">توضیحات سفارش</label>
+                            <textarea class="form-control" id="customer_notes" name="customer_notes" 
+                                      rows="3" placeholder="توضیحات اضافی برای سفارش..."></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>ادامه به پرداخت
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>خلاصه سفارش
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                            <small class="text-muted">تعداد: {{ item.quantity }}</small>
+                        </div>
+                        <div class="text-end">
+                            <div class="fw-bold">{{ item.total_price|floatformat:0 }} تومان</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>جمع کل:</span>
+                        <span>{{ cart.total_price|floatformat:0 }} تومان</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>هزینه ارسال:</span>
+                        <span>رایگان</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>مبلغ قابل پرداخت:</strong>
+                        <strong class="text-success fs-5">{{ cart.total_price|floatformat:0 }} تومان</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    // Basic form validation
+    const requiredFields = ['customer_name', 'customer_email', 'customer_phone', 'shipping_address', 'shipping_city'];
+    
+    for (let field of requiredFields) {
+        const input = document.getElementById(field);
+        if (!input.value.trim()) {
+            e.preventDefault();
+            alert('لطفاً تمام فیلدهای ضروری را پر کنید');
+            input.focus();
+            return false;
+        }
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>در حال پردازش...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %} 

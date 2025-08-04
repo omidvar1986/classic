@@ -13,11 +13,14 @@ urlpatterns = [
     path('finalize/<int:order_id>/', views.finalize_order, name='finalize_order'),
     path('direct-access/', views.direct_admin_access, name='direct_access'),
     
-    # Settings Management URLs
-    path('settings/', views.settings_view, name='settings'),
-    path('settings/print-pricing/', views.print_pricing_view, name='print_pricing'),
-    path('settings/typing-pricing/', views.typing_pricing_view, name='typing_pricing'),
-    path('settings/payment/', views.payment_settings_view, name='payment_settings'),
+    # Settings Management
+    path('settings/', views.settings_dashboard, name='settings_dashboard'),
+    path('settings/print-pricing/', views.print_pricing, name='print_pricing'),
+    path('settings/save-print-pricing/', views.save_print_pricing, name='save_print_pricing'),
+    path('settings/typing-pricing/', views.typing_pricing, name='typing_pricing'),
+    path('settings/save-typing-pricing/', views.save_typing_pricing, name='save_typing_pricing'),
+    path('settings/packages/', views.packages_management, name='packages_management'),
+    path('settings/payment/', views.payment_settings, name='payment_settings'),
     
     # Accessories Management URLs
     path('accessories/', views.accessories_view, name='accessories'),
@@ -63,4 +66,9 @@ urlpatterns = [
     path('accessories/<int:accessory_id>/edit/', views.get_accessory, name='get_accessory'),
     path('accessories/save/', views.save_accessory, name='save_accessory'),
     path('accessories/<int:accessory_id>/delete/', views.delete_accessory, name='delete_accessory'),
+
+    # Payment Receipts Management
+    path('payment-receipts/', views.payment_receipts_management, name='payment_receipts_management'),
+    path('payment-receipts/<int:receipt_id>/approve/', views.approve_payment_receipt, name='approve_payment_receipt'),
+    path('payment-receipts/<int:receipt_id>/reject/', views.reject_payment_receipt, name='reject_payment_receipt'),
 ]

@@ -1,0 +1,168 @@
+{% load i18n %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% trans "Digital File Shop" %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .status-badge {
+            font-size: 0.875rem;
+        }
+        .lang-form {
+            width: 130px;
+        }
+        .product-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+        .category-card:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'digital_shop:home' %}">
+                <i class="fas fa-shopping-bag me-2"></i>فروشگاه دیجیتال
+            </a>
+            <a class="navbar-brand" href="{% url 'core:home' %}" style="margin-right: 20px;">
+                <i class="fas fa-home me-2"></i>صفحه اصلی
+            </a>
+            <a class="navbar-brand" href="{% url 'government_services:service_list' %}" style="margin-right: 20px;">
+                <i class="fas fa-building me-2"></i>خدمات دولتی
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if request.user.is_authenticated and request.user.is_staff %}
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-bold" href="{% url 'admin_dashboard:dashboard' %}">
+                            <i class="fas fa-tools me-1"></i>پنل مدیریت
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'digital_shop:product_list' %}">
+                            <i class="fas fa-th-large me-1"></i>محصولات
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'digital_shop:cart' %}">
+                            <i class="fas fa-shopping-cart me-1"></i>سبد خرید
+                            {% if request.user.is_authenticated %}
+                            <span class="badge bg-primary" id="cart-count">
+                                {{ request.user.cart.total_items|default:0 }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'digital_shop:wishlist' %}">
+                            <i class="fas fa-heart me-1"></i>علاقه‌مندی‌ها
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'digital_shop:my_orders' %}">
+                            <i class="fas fa-list me-1"></i>سفارشات من
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:dashboard' %}">
+                            <i class="fas fa-user me-1"></i>پروفایل
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:logout' %}">
+                            <i class="fas fa-sign-out-alt me-1"></i>خروج
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>ورود
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:register' %}">
+                            <i class="fas fa-user-plus me-1"></i>ثبت نام
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        {% if messages %}
+        <div class="container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>فروشگاه دیجیتال</h5>
+                    <p class="text-muted">بهترین محصولات دیجیتال با بهترین قیمت</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>لینک‌های مفید</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'digital_shop:about' %}" class="text-decoration-none">درباره ما</a></li>
+                        <li><a href="{% url 'digital_shop:contact' %}" class="text-decoration-none">تماس با ما</a></li>
+                        <li><a href="{% url 'digital_shop:terms' %}" class="text-decoration-none">قوانین و مقررات</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>خدمات</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'print_service:order_create' %}" class="text-decoration-none">خدمات چاپ</a></li>
+                        <li><a href="{% url 'typing_service:order_create' %}" class="text-decoration-none">خدمات تایپ</a></li>
+                        <li><a href="{% url 'government_services:service_list' %}" class="text-decoration-none">خدمات دولتی</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

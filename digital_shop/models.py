@@ -228,6 +228,7 @@ class Order(models.Model):
     """Customer orders"""
     STATUS_CHOICES = [
         ('pending', _('Pending')),
+        ('pending_payment', _('Pending Payment')),
         ('confirmed', _('Confirmed')),
         ('processing', _('Processing')),
         ('shipped', _('Shipped')),
@@ -398,3 +399,38 @@ class Banner(models.Model):
         return (self.is_active and 
                 self.start_date <= now and 
                 (self.end_date is None or self.end_date >= now))
+
+class PaymentReceipt(models.Model):
+    """Payment receipt for manual payments (Nobitex-style)"""
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='payment_receipts')
+    receipt_image = models.ImageField(upload_to='payment_receipts/', verbose_name="تصویر رسید")
+    transaction_id = models.CharField(max_length=100, verbose_name="شماره تراکنش", blank=True, null=True)
+    depositor_name = models.CharField(max_length=100, verbose_name="نام واریزکننده", blank=True, null=True)
+    deposit_date = models.DateTimeField(verbose_name="تاریخ واریز", blank=True, null=True)
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="مبلغ واریز شده")
+    
+    STATUS_CHOICES = [
+        ('pending', 'در انتظار بررسی'),
+        ('approved', 'تایید شده'),
+        ('rejected', 'رد شده'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="وضعیت")
+    
+    admin_note = models.TextField(verbose_name="یادداشت ادمین", blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاریخ ایجاد")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاریخ بروزرسانی")
+    
+    class Meta:
+        verbose_name = "رسید پرداخت"
+        verbose_name_plural = "رسیدهای پرداخت"
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"رسید سفارش {self.order.id} - {self.get_status_display()}"
+    
+    def save(self, *args, **kwargs):
+        # Auto-approve payment if receipt is approved
+        if self.status == 'approved' and self.order.status == 'pending_payment':
+            self.order.status = 'paid'
+            self.order.save()
+        super().save(*args, **kwargs)

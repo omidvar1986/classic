@@ -131,14 +131,23 @@ class UploadedFile(models.Model):
 
 
 class PaymentSettings(models.Model):
-    bank_name = models.CharField(max_length=100)
-    account_number = models.CharField(max_length=30)
-    card_number = models.CharField(max_length=30)
-    shaba_number = models.CharField(max_length=34)
+    bank_name = models.CharField(max_length=100, verbose_name="نام بانک")
+    account_number = models.CharField(max_length=30, verbose_name="شماره حساب")
+    card_number = models.CharField(max_length=30, verbose_name="شماره کارت")
+    shaba_number = models.CharField(max_length=34, verbose_name="شماره شبا")
+    account_holder = models.CharField(max_length=100, verbose_name="صاحب حساب", blank=True, null=True)
+    payment_instructions = models.TextField(verbose_name="دستورالعمل پرداخت", blank=True, null=True)
+    order_validity_hours = models.PositiveIntegerField(default=24, verbose_name="اعتبار سفارش (ساعت)")
+    qr_code = models.ImageField(upload_to='payment_qr/', blank=True, null=True, verbose_name="QR کد کارت")
+    is_active = models.BooleanField(default=True, verbose_name="فعال")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.bank_name} - {self.card_number}"
+
+    class Meta:
+        verbose_name = "تنظیمات پرداخت"
+        verbose_name_plural = "تنظیمات پرداخت"
 
 
 class PrintPriceSettings(models.Model):
