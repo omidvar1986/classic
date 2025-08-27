@@ -95,7 +95,8 @@
                     <div class="row">
                         {% for product in featured_products %}
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card h-100 border-0 shadow-sm product-card">
+                            <a href="{% url 'digital_shop:product_detail' product.slug %}" class="product-link">
+                                <div class="card h-100 border-0 shadow-sm product-card">
                                 <div class="position-relative">
                                     {% if product.images.first %}
                                     <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
@@ -139,12 +140,13 @@
                                     </div>
                                     
                                     <div class="d-grid">
-                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-primary btn-sm">
+                                        <span class="btn btn-primary btn-sm">
                                             مشاهده جزئیات
-                                        </a>
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
@@ -168,7 +170,8 @@
                     <div class="row">
                         {% for product in new_products %}
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card h-100 border-0 shadow-sm product-card">
+                            <a href="{% url 'digital_shop:product_detail' product.slug %}" class="product-link">
+                                <div class="card h-100 border-0 shadow-sm product-card">
                                 <div class="position-relative">
                                     {% if product.images.first %}
                                     <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
@@ -202,12 +205,13 @@
                                     </div>
                                     
                                     <div class="d-grid">
-                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-outline-primary btn-sm">
+                                        <span class="btn btn-outline-primary btn-sm">
                                             مشاهده جزئیات
-                                        </a>
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
@@ -231,7 +235,8 @@
                     <div class="row">
                         {% for product in best_sellers %}
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card h-100 border-0 shadow-sm product-card">
+                            <a href="{% url 'digital_shop:product_detail' product.slug %}" class="product-link">
+                                <div class="card h-100 border-0 shadow-sm product-card">
                                 <div class="position-relative">
                                     {% if product.images.first %}
                                     <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
@@ -268,12 +273,13 @@
                                     </div>
                                     
                                     <div class="d-grid">
-                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-warning btn-sm">
+                                        <span class="btn btn-warning btn-sm">
                                             مشاهده جزئیات
-                                        </a>
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
@@ -297,7 +303,8 @@
                     <div class="row">
                         {% for product in on_sale_products %}
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <div class="card h-100 border-0 shadow-sm product-card">
+                            <a href="{% url 'digital_shop:product_detail' product.slug %}" class="product-link">
+                                <div class="card h-100 border-0 shadow-sm product-card">
                                 <div class="position-relative">
                                     {% if product.images.first %}
                                     <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}">
@@ -329,12 +336,13 @@
                                     </div>
                                     
                                     <div class="d-grid">
-                                        <a href="{% url 'digital_shop:product_detail' product.slug %}" class="btn btn-danger btn-sm">
+                                        <span class="btn btn-danger btn-sm">
                                             مشاهده جزئیات
-                                        </a>
+                                        </span>
                                     </div>
                                 </div>
-                            </div>
+                                </div>
+                            </a>
                         </div>
                         {% endfor %}
                     </div>
@@ -423,5 +431,74 @@
 .carousel-item .card {
     border-radius: 0;
 }
+
+/* Ensure product cards are clickable */
+.product-link {
+    color: inherit;
+    text-decoration: none !important;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.product-link:hover {
+    color: inherit;
+    text-decoration: none !important;
+    transform: translateY(-2px);
+}
+
+.product-link:focus {
+    color: inherit;
+    text-decoration: none !important;
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.product-card {
+    cursor: pointer;
+    position: relative;
+}
+
+.product-card .badge {
+    pointer-events: none;
+    position: absolute;
+    z-index: 10;
+}
+
+/* Ensure images load properly */
+.card-img-top {
+    max-width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
 </style>
-{% endblock %} 
+
+<script>
+// Debug script to ensure links are working
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, checking product links...');
+    
+    const productLinks = document.querySelectorAll('.product-link');
+    console.log('Found ' + productLinks.length + ' product links');
+    
+    productLinks.forEach(function(link, index) {
+        console.log('Link ' + index + ':', link.href);
+        
+        // Add click event listener for debugging
+        link.addEventListener('click', function(e) {
+            console.log('Product link clicked:', this.href);
+            // Don't prevent default, let the link work normally
+        });
+        
+        // Add visual feedback on hover
+        link.addEventListener('mouseenter', function() {
+            this.style.opacity = '0.9';
+        });
+        
+        link.addEventListener('mouseleave', function() {
+            this.style.opacity = '1';
+        });
+    });
+});
+</script>
+{% endblock %}

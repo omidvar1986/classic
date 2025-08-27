@@ -21,7 +21,7 @@
                 <div class="alert alert-info">
                     {% if order.payment_method == 'online' %}
                         {% trans "Please proceed to payment and upload your payment slip." %}
-                        <a href="{% url 'print_service:payment_slip_upload' order.id %}" class="btn btn-primary btn-sm ms-2">{% trans "Go to Payment" %}</a>
+                        <a href="{% url 'print_service:payment_page' order.id %}" class="btn btn-primary btn-sm ms-2">{% trans "Go to Payment" %}</a>
                     {% else %}
                         {% trans "You can track your order status using your order ID or email." %}
                     {% endif %}

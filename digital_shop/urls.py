@@ -45,4 +45,22 @@ urlpatterns = [
     # Payment URLs
     path('order/<int:order_id>/payment/', views.payment_page, name='payment_page'),
     path('order/<int:order_id>/detail/', views.order_detail, name='order_detail'),
+    
+    # API endpoints for React frontend
+    path('api/products/', views.api_products, name='api_products'),
+    path('api/product/<int:product_id>/', views.api_product_detail, name='api_product_detail'),
+    path('api/cart/', views.api_cart, name='api_cart'),
+    path('api/cart/add/', views.api_add_to_cart, name='api_add_to_cart'),
+    path('api/cart/update/<int:item_id>/', views.api_update_cart_item, name='api_update_cart_item'),
+    path('api/cart/remove/<int:item_id>/', views.api_remove_cart_item, name='api_remove_cart_item'),
+    path('api/checkout/', views.api_checkout, name='api_checkout'),
+    path('api/orders/', views.api_my_orders, name='api_my_orders'),
+    path('api/create-order/', views.api_create_order, name='api_create_order'),
+    path('api/orders/<int:order_id>/payment-receipts/', views.api_upload_payment_receipt, name='api_upload_payment_receipt'),
+    
+    # Admin API endpoints for React admin panel
+    path('api/admin/products/', views.api_admin_products, name='api_admin_products'),
+    path('api/admin/products/create/', views.api_admin_create_product, name='api_admin_create_product'),
+    path('api/admin/products/<int:product_id>/', views.api_admin_update_product, name='api_admin_update_product'),
+    path('api/admin/products/<int:product_id>/delete/', views.api_admin_delete_product, name='api_admin_delete_product'),
 ] 

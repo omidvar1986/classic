@@ -23,6 +23,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from digital_shop.models import PaymentReceipt
+import json
 
 # فقط کاربران staff یا superuser دسترسی داشته باشند
 def staff_required(view_func):
@@ -954,49 +955,73 @@ def digital_shop_categories(request):
     categories = Category.objects.all().order_by('sort_order')
     
     if request.method == 'POST':
-        # Handle category creation/update
-        name = request.POST.get('name')
-        slug = request.POST.get('slug')
-        description = request.POST.get('description')
-        icon = request.POST.get('icon', 'fas fa-box')
-        color = request.POST.get('color', 'primary')
-        parent_id = request.POST.get('parent') if request.POST.get('parent') else None
-        sort_order = request.POST.get('sort_order', 0)
-        is_active = 'is_active' in request.POST
-        is_featured = 'is_featured' in request.POST
+        try:
+            # Check if this is an AJAX request
+            if request.headers.get('Content-Type') == 'application/json':
+                data = json.loads(request.body)
+                action = data.get('action')
+                
+                if action == 'toggle_status':
+                    category_id = data.get('category_id')
+                    is_active = data.get('is_active')
+                    
+                    try:
+                        category = Category.objects.get(id=category_id)
+                        category.is_active = is_active
+                        category.save()
+                        return JsonResponse({'success': True, 'message': 'وضعیت دسته‌بندی تغییر کرد'})
+                    except Category.DoesNotExist:
+                        return JsonResponse({'success': False, 'message': 'دسته‌بندی یافت نشد'})
+                
+                return JsonResponse({'success': False, 'message': 'عملیات نامعتبر'})
+            
+            # Handle regular form submission
+            name = request.POST.get('name')
+            slug = request.POST.get('slug')
+            description = request.POST.get('description')
+            icon = request.POST.get('icon', 'fas fa-box')
+            color = request.POST.get('color', 'primary')
+            sort_order = int(request.POST.get('sort_order', 0))
+            is_active = 'is_active' in request.POST
+            is_featured = 'is_featured' in request.POST
+            
+            category_id = request.POST.get('category_id')
+            
+            if category_id:
+                # Update existing category
+                try:
+                    category = Category.objects.get(id=category_id)
+                    category.name = name
+                    category.slug = slug
+                    category.description = description
+                    category.icon = icon
+                    category.color = color
+                    category.sort_order = sort_order
+                    category.is_active = is_active
+                    category.is_featured = is_featured
+                    category.save()
+                    return JsonResponse({'success': True, 'message': 'دسته‌بندی با موفقیت به‌روزرسانی شد'})
+                except Category.DoesNotExist:
+                    return JsonResponse({'success': False, 'message': 'دسته‌بندی یافت نشد'})
+            else:
+                # Create new category
+                try:
+                    Category.objects.create(
+                        name=name,
+                        slug=slug,
+                        description=description,
+                        icon=icon,
+                        color=color,
+                        sort_order=sort_order,
+                        is_active=is_active,
+                        is_featured=is_featured,
+                    )
+                    return JsonResponse({'success': True, 'message': 'دسته‌بندی جدید با موفقیت ایجاد شد'})
+                except Exception as e:
+                    return JsonResponse({'success': False, 'message': f'خطا در ایجاد دسته‌بندی: {str(e)}'})
         
-        category_id = request.POST.get('category_id')
-        
-        if category_id:
-            # Update existing category
-            category = get_object_or_404(Category, id=category_id)
-            category.name = name
-            category.slug = slug
-            category.description = description
-            category.icon = icon
-            category.color = color
-            category.parent_id = parent_id
-            category.sort_order = sort_order
-            category.is_active = is_active
-            category.is_featured = is_featured
-            category.save()
-            messages.success(request, _('Category updated successfully!'))
-        else:
-            # Create new category
-            Category.objects.create(
-                name=name,
-                slug=slug,
-                description=description,
-                icon=icon,
-                color=color,
-                parent_id=parent_id,
-                sort_order=sort_order,
-                is_active=is_active,
-                is_featured=is_featured,
-            )
-            messages.success(request, _('Category created successfully!'))
-        
-        return redirect('admin_dashboard:digital_shop_categories')
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'خطا: {str(e)}'})
     
     context = {
         'categories': categories,

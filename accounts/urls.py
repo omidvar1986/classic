@@ -4,14 +4,19 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
+    # Existing URLs
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
-    path('dashboard/', views.user_dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('password-reset/', views.password_reset_view, name='password_reset'),
-    path('password-reset/done/', views.password_reset_done_view, name='password_reset_done'),
-    path('reset/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
-    path('reset/done/', views.password_reset_complete_view, name='password_reset_complete'),
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('user-management/', views.user_management, name='user_management'),
+    path('password-reset/done/', views.password_reset_done, name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    path('password-reset-complete/', views.password_reset_complete, name='password_reset_complete'),
+    
+    # API endpoints for React frontend
+    path('api/login/', views.api_login, name='api_login'),
+    path('api/logout/', views.api_logout, name='api_logout'),
+    path('api/profile/', views.api_profile, name='api_profile'),
+    path('api/register/', views.api_register, name='api_register'),
 ] 

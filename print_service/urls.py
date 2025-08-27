@@ -14,6 +14,9 @@ urlpatterns = [
     path('debug-orders/', views.order_debug_list, name='order_debug_list'),
     path('track-order/', views.unified_order_track, name='unified_order_track'),
 
+    # My Orders (for authenticated users)
+    path('my-orders/', views.my_orders, name='my_orders'),
+
     # Payment URLs
     path('payment/<int:order_id>/', views.payment_page, name='payment_page'),
 
@@ -33,4 +36,10 @@ urlpatterns = [
     # Store interface
     path('store/', views.store_order, name='store_order'),
     path('api/pricing/', views.pricing_api, name='pricing_api'),
+    path('api/accessories/', views.accessories_api, name='accessories_api'),
+    path('api/typing-accessories/', views.typing_accessories_api, name='typing_accessories_api'),
+    
+    # API endpoints for React frontend
+    path('api/create/', views.api_create_order, name='api_create_order'),
+    path('api/my-orders/', views.api_my_orders, name='api_my_orders'),
 ]

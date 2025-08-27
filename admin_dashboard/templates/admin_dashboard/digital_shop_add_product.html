@@ -1,325 +1,348 @@
 {% extends 'print_service/base.html' %}
 {% load i18n %}
 
-{% block title %}افزودن محصول{% endblock %}
+{% block title %}افزودن محصول جدید{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-plus text-success me-2"></i>افزودن محصول جدید</h2>
-        <div>
-            <a href="{% url 'admin_dashboard:digital_shop_products' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i>بازگشت به محصولات
-            </a>
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-plus text-success me-2"></i>افزودن محصول جدید</h2>
+                <div>
+                    <a href="{% url 'admin_dashboard:digital_shop_products' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>بازگشت به لیست محصولات
+                    </a>
+                </div>
+            </div>
+
+            <!-- Product Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">اطلاعات محصول</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Basic Information -->
+                            <div class="col-md-8">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="form-label">نام محصول <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="sku" class="form-label">کد محصول (SKU) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="sku" name="sku" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="category" class="form-label">دسته‌بندی <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="category" name="category" required>
+                                            <option value="">انتخاب دسته‌بندی</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}">{{ category.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="brand" class="form-label">برند</label>
+                                        <select class="form-select" id="brand" name="brand">
+                                            <option value="">انتخاب برند</option>
+                                            {% for brand in brands %}
+                                            <option value="{{ brand.id }}">{{ brand.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="price" class="form-label">قیمت (تومان) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="compare_price" class="form-label">قیمت مقایسه‌ای (تومان)</label>
+                                        <input type="number" class="form-control" id="compare_price" name="compare_price" step="0.01" min="0">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="stock_quantity" class="form-label">موجودی <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="condition" class="form-label">وضعیت محصول</label>
+                                        <select class="form-select" id="condition" name="condition">
+                                            <option value="new">نو</option>
+                                            <option value="used">دست دوم</option>
+                                            <option value="refurbished">بازسازی شده</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="short_description" class="form-label">توضیحات کوتاه</label>
+                                    <textarea class="form-control" id="short_description" name="short_description" rows="2" maxlength="300" placeholder="توضیحات کوتاه محصول (حداکثر 300 کاراکتر)"></textarea>
+                                    <div class="form-text">کاراکترهای باقی‌مانده: <span id="charCount">300</span></div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">توضیحات کامل <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="description" name="description" rows="5" required placeholder="توضیحات کامل محصول"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Product Images -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">تصاویر محصول <span class="text-danger">*</span></label>
+                                    <div class="border rounded p-3 text-center" id="imageUploadArea">
+                                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                                        <p class="text-muted">برای آپلود تصویر کلیک کنید</p>
+                                        <input type="file" class="form-control" id="images" name="images" multiple accept="image/*" required>
+                                    </div>
+                                    <div id="imagePreview" class="mt-2"></div>
+                                    <small class="form-text text-muted">حداقل یک تصویر الزامی است. اولین تصویر به عنوان تصویر اصلی انتخاب می‌شود.</small>
+                                </div>
+
+                                <!-- Product Status -->
+                                <div class="mb-3">
+                                    <label class="form-label">وضعیت محصول</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
+                                        <label class="form-check-label" for="is_active">فعال</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
+                                        <label class="form-check-label" for="is_featured">محصول ویژه</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_new" name="is_new">
+                                        <label class="form-check-label" for="is_new">محصول جدید</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_on_sale" name="is_on_sale">
+                                        <label class="form-check-label" for="is_on_sale">تخفیف دار</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="is_bestseller" name="is_bestseller">
+                                        <label class="form-check-label" for="is_bestseller">پرفروش</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Attributes -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>ویژگی‌های محصول</h5>
+                                <div id="attributesContainer">
+                                    <div class="row mb-2 attribute-row">
+                                        <div class="col-md-5">
+                                            <input type="text" class="form-control" name="attribute_name[]" placeholder="نام ویژگی">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input type="text" class="form-control" name="attribute_value[]" placeholder="مقدار ویژگی">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-attribute">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addAttribute">
+                                    <i class="fas fa-plus me-1"></i>افزودن ویژگی
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit Buttons -->
+                        <div class="row mt-4">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-success btn-lg me-2">
+                                    <i class="fas fa-save me-1"></i>ذخیره محصول
+                                </button>
+                                <a href="{% url 'admin_dashboard:digital_shop_products' %}" class="btn btn-secondary btn-lg">
+                                    <i class="fas fa-times me-1"></i>لغو
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <div class="row">
-            <!-- Basic Information -->
-            <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>اطلاعات پایه</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">نام محصول *</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="sku" class="form-label">کد محصول *</label>
-                                <input type="text" class="form-control" id="sku" name="sku" required>
-                                <div class="form-text">{% trans "Unique product identifier (e.g., LAPTOP-ASUS-001, PEN-BLUE-50)" %}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="short_description" class="form-label">توضیح کوتاه</label>
-                            <input type="text" class="form-control" id="short_description" name="short_description" maxlength="300">
-                            <div class="form-text">توضیح مختصر برای لیست محصولات</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">توضیح کامل *</label>
-                            <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pricing -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>قیمت‌گذاری</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="price" class="form-label">قیمت *</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">تومان</span>
-                                    <input type="number" class="form-control" id="price" name="price" step="1000" min="0" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="compare_price" class="form-label">قیمت مقایسه‌ای</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">تومان</span>
-                                    <input type="number" class="form-control" id="compare_price" name="compare_price" step="1000" min="0">
-                                </div>
-                                <div class="form-text">قیمت اصلی بالاتر برای نمایش تخفیف (مثل 500,000 تومان خط خورده وقتی برای 400,000 تومان فروخته می‌شود)</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Inventory -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-warehouse me-2"></i>موجودی</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="stock_quantity" class="form-label">تعداد موجودی *</label>
-                                <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" min="0" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="condition" class="form-label">وضعیت</label>
-                                <select class="form-select" id="condition" name="condition">
-                                    <option value="new">{% trans "New" %}</option>
-                                    <option value="used">دست دوم</option>
-                                    <option value="refurbished">بازسازی شده</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Images -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-images me-2"></i>تصاویر محصول</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="images" class="form-label">آپلود تصاویر</label>
-                            <input type="file" class="form-control" id="images" name="images" multiple accept="image/*">
-                            <div class="form-text">می‌توانید چندین تصویر انتخاب کنید. اولین تصویر تصویر اصلی خواهد بود.</div>
-                        </div>
-                        
-                        <div id="imagePreview" class="row g-2">
-                            <!-- Image previews will be shown here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Attributes -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>ویژگی‌های محصول</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="attributesContainer">
-                            <div class="row mb-2 attribute-row">
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control" name="attribute_name" placeholder="{% trans 'Attribute name (e.g., Color, Size)' %}">
-                                </div>
-                                <div class="col-md-5">
-                                    <input type="text" class="form-control" name="attribute_value" placeholder="{% trans 'Attribute value (e.g., Red, Large)' %}">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-outline-danger btn-sm remove-attribute" style="display: none;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-outline-primary btn-sm" id="addAttribute">
-                            <i class="fas fa-plus me-1"></i>افزودن ویژگی
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="col-md-4">
-                <!-- Categorization -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-tags me-2"></i>دسته‌بندی</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="category" class="form-label">دسته‌بندی *</label>
-                            <select class="form-select" id="category" name="category" required>
-                                <option value="">انتخاب دسته‌بندی</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="brand" class="form-label">برند</label>
-                            <select class="form-select" id="brand" name="brand">
-                                <option value="">انتخاب برند</option>
-                                {% for brand in brands %}
-                                <option value="{{ brand.id }}">{{ brand.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Product Status -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-toggle-on me-2"></i>وضعیت محصول</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                            <label class="form-check-label" for="is_active">
-                                فعال
-                            </label>
-                        </div>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
-                            <label class="form-check-label" for="is_featured">
-                                محصول ویژه
-                            </label>
-                        </div>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="is_bestseller" name="is_bestseller">
-                            <label class="form-check-label" for="is_bestseller">
-                                پرفروش
-                            </label>
-                        </div>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="is_new" name="is_new">
-                            <label class="form-check-label" for="is_new">
-                                محصول جدید
-                            </label>
-                        </div>
-                        
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" id="is_on_sale" name="is_on_sale">
-                            <label class="form-check-label" for="is_on_sale">
-                                تخفیف
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="card">
-                    <div class="card-body">
-                        <button type="submit" class="btn btn-success w-100 mb-2">
-                            <i class="fas fa-save me-1"></i>ایجاد محصول
-                        </button>
-                        <a href="{% url 'admin_dashboard:digital_shop_products' %}" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-times me-1"></i>لغو
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
 </div>
 
 <script>
-// Image preview functionality
-document.getElementById('images').addEventListener('change', function(e) {
-    const preview = document.getElementById('imagePreview');
-    preview.innerHTML = '';
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for short description
+    const shortDesc = document.getElementById('short_description');
+    const charCount = document.getElementById('charCount');
     
-    for (let i = 0; i < e.target.files.length; i++) {
-        const file = e.target.files[i];
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'col-md-3';
-            div.innerHTML = `
-                <div class="position-relative">
-                    <img src="${e.target.result}" class="img-fluid rounded" style="height: 150px; width: 100%; object-fit: cover;">
-                    <div class="position-absolute top-0 start-0 m-1">
-                        <span class="badge bg-primary">${i === 0 ? 'Primary' : 'Secondary'}</span>
-                    </div>
-                </div>
-            `;
-            preview.appendChild(div);
-        };
-        
-        reader.readAsDataURL(file);
-    }
-});
-
-// Add/remove attributes functionality
-document.getElementById('addAttribute').addEventListener('click', function() {
-    const container = document.getElementById('attributesContainer');
-    const newRow = document.createElement('div');
-    newRow.className = 'row mb-2 attribute-row';
-    newRow.innerHTML = `
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="attribute_name" placeholder="{% trans 'Attribute name' %}">
-        </div>
-        <div class="col-md-5">
-            <input type="text" class="form-control" name="attribute_value" placeholder="{% trans 'Attribute value' %}">
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-attribute">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    container.appendChild(newRow);
-    
-    // Show remove button for all rows
-    document.querySelectorAll('.remove-attribute').forEach(btn => {
-        btn.style.display = 'block';
-    });
-});
-
-// Remove attribute functionality
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('remove-attribute') || e.target.closest('.remove-attribute')) {
-        const row = e.target.closest('.attribute-row');
-        row.remove();
-        
-        // Hide remove button if only one row remains
-        if (document.querySelectorAll('.attribute-row').length === 1) {
-            document.querySelector('.remove-attribute').style.display = 'none';
+    shortDesc.addEventListener('input', function() {
+        const remaining = 300 - this.value.length;
+        charCount.textContent = remaining;
+        if (remaining < 0) {
+            charCount.classList.add('text-danger');
+        } else {
+            charCount.classList.remove('text-danger');
         }
-    }
+    });
+
+    // Image preview
+    const imageInput = document.getElementById('images');
+    const imagePreview = document.getElementById('imagePreview');
+    
+    imageInput.addEventListener('change', function() {
+        imagePreview.innerHTML = '';
+        const files = this.files;
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail me-2 mb-2';
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+
+    // Add/Remove attributes
+    const addAttributeBtn = document.getElementById('addAttribute');
+    const attributesContainer = document.getElementById('attributesContainer');
+    
+    addAttributeBtn.addEventListener('click', function() {
+        const attributeRow = document.createElement('div');
+        attributeRow.className = 'row mb-2 attribute-row';
+        attributeRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="attribute_name[]" placeholder="نام ویژگی">
+            </div>
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="attribute_value[]" placeholder="مقدار ویژگی">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-attribute">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        attributesContainer.appendChild(attributeRow);
+    });
+
+    // Remove attribute row
+    attributesContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-attribute')) {
+            e.target.closest('.attribute-row').remove();
+        }
+    });
+
+    // Form validation
+    const form = document.getElementById('productForm');
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value.trim();
+        const sku = document.getElementById('sku').value.trim();
+        const category = document.getElementById('category').value;
+        const price = document.getElementById('price').value;
+        const stock = document.getElementById('stock_quantity').value;
+        const description = document.getElementById('description').value.trim();
+        const images = document.getElementById('images').files;
+
+        if (!name || !sku || !category || !price || !stock || !description || images.length === 0) {
+            e.preventDefault();
+            alert('لطفاً تمام فیلدهای الزامی را پر کنید و حداقل یک تصویر آپلود کنید.');
+            return false;
+        }
+
+        if (parseFloat(price) <= 0) {
+            e.preventDefault();
+            alert('قیمت باید بیشتر از صفر باشد.');
+            return false;
+        }
+
+        if (parseInt(stock) < 0) {
+            e.preventDefault();
+            alert('موجودی نمی‌تواند منفی باشد.');
+            return false;
+        }
+    });
 });
 </script>
 
 <style>
 .card {
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
 }
 
 .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
 }
 
-.form-label {
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn {
+    border-radius: 10px;
     font-weight: 600;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+}
+
+#imageUploadArea {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#imageUploadArea:hover {
+    border-color: #667eea;
+    background: #f0f2ff;
 }
 
 .attribute-row {
     align-items: center;
+}
+
+.img-thumbnail {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 </style>
 {% endblock %} 

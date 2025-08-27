@@ -19,10 +19,9 @@ class TypingOrderForm(forms.ModelForm):
     
     class Meta:
         model = TypingOrder
-        fields = ['user_name', 'user_email', 'user_phone', 'description', 'document_file']
+        fields = ['user_name', 'user_phone', 'description', 'document_file']
         widgets = {
             'user_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g., John Doe')}),
-            'user_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': _('e.g., john.doe@example.com')}),
             'user_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': _('e.g., 09123456789')}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': _('Please provide any details about your document, such as formatting requirements.')}),
             'document_file': forms.ClearableFileInput(attrs={'class': 'form-control'}),

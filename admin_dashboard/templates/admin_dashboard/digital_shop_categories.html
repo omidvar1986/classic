@@ -5,262 +5,491 @@
 
 {% block content %}
 <div class="container mt-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-tags text-warning me-2"></i>مدیریت دسته‌بندی‌ها</h2>
-        <div>
-            <a href="{% url 'admin_dashboard:digital_shop_dashboard' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i>بازگشت به داشبورد
-            </a>
-        </div>
-    </div>
-
     <div class="row">
-        <!-- Add/Edit Category Form -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-plus me-2"></i>افزودن/ویرایش دسته‌بندی</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="category_id" id="category_id">
-                        
-                        <div class="mb-3">
-                            <label for="name" class="form-label">نام دسته‌بندی *</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="slug" class="form-label">{% trans "Slug" %} *</label>
-                            <input type="text" class="form-control" id="slug" name="slug" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="description" class="form-label">توضیحات</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="icon" class="form-label">کلاس آیکون</label>
-                            <input type="text" class="form-control" id="icon" name="icon" value="fas fa-box">
-                            <div class="form-text">کلاس آیکون FontAwesome (مثل fas fa-box)</div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="color" class="form-label">رنگ</label>
-                            <select class="form-select" id="color" name="color">
-                                <option value="primary">Primary (Blue)</option>
-                                <option value="success">Success (Green)</option>
-                                <option value="warning">Warning (Yellow)</option>
-                                <option value="danger">Danger (Red)</option>
-                                <option value="info">Info (Cyan)</option>
-                                <option value="secondary">Secondary (Gray)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="parent" class="form-label">دسته‌بندی والد</label>
-                            <select class="form-select" id="parent" name="parent">
-                                <option value="">بدون والد</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="sort_order" class="form-label">ترتیب مرتب‌سازی</label>
-                            <input type="number" class="form-control" id="sort_order" name="sort_order" value="0">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" checked>
-                                <label class="form-check-label" for="is_active">
-                                    فعال
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured">
-                                <label class="form-check-label" for="is_featured">
-                                    دسته‌بندی ویژه
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="fas fa-save me-1"></i>ذخیره دسته‌بندی
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="clearForm()">
-                                <i class="fas fa-times me-1"></i>پاک کردن فرم
-                            </button>
-                        </div>
-                    </form>
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-tags text-primary me-2"></i>مدیریت دسته‌بندی‌ها</h2>
+                <div>
+                    <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="fas fa-plus me-1"></i>افزودن دسته‌بندی
+                    </button>
+                    <a href="{% url 'admin_dashboard:digital_shop_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>بازگشت به داشبورد
+                    </a>
                 </div>
             </div>
-        </div>
 
-        <!-- Categories List -->
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">دسته‌بندی‌ها ({{ categories.count }})</h5>
-                </div>
-                <div class="card-body">
-                    {% if categories %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>آیکون</th>
-                                    <th>نام</th>
-                                    <th>{% trans "Slug" %}</th>
-                                    <th>والد</th>
-                                    <th>{% trans "Products" %}</th>
-                                    <th>وضعیت</th>
-                                    <th>عملیات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for category in categories %}
-                                <tr>
-                                    <td>
-                                        <i class="{{ category.icon }} fa-lg text-{{ category.color }}"></i>
-                                    </td>
-                                    <td>
-                                        <strong>{{ category.name }}</strong>
-                                        {% if category.description %}
-                                        <br><small class="text-muted">{{ category.description|truncatechars:50 }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td><code>{{ category.slug }}</code></td>
-                                    <td>
-                                        {% if category.parent %}
-                                        <span class="badge bg-secondary">{{ category.parent.name }}</span>
-                                        {% else %}
-                                        <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">{{ category.product_count }}</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex flex-column gap-1">
-                                            {% if category.is_active %}
-                                            <span class="badge bg-success">فعال</span>
-                                            {% else %}
-                                            <span class="badge bg-secondary">غیرفعال</span>
-                                            {% endif %}
-                                            
-                                            {% if category.is_featured %}
-                                            <span class="badge bg-warning">ویژه</span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                    onclick="editCategory({{ category.id }}, '{{ category.name }}', '{{ category.slug }}', '{{ category.description }}', '{{ category.icon }}', '{{ category.color }}', {{ category.parent.id|default:'null' }}, {{ category.sort_order }}, {{ category.is_active|yesno:'true,false' }}, {{ category.is_featured|yesno:'true,false' }})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <a href="{% url 'digital_shop:category_detail' category.slug %}" 
-                                               class="btn btn-sm btn-outline-info" target="_blank">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <!-- Categories Grid -->
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 category-card" data-category-id="{{ category.id }}">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-{{ category.icon|default:'box' }} me-2"></i>
+                                {{ category.name }}
+                            </h5>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <button class="dropdown-item" onclick="editCategory({{ category.id }}, '{{ category.name }}', '{{ category.description }}', '{{ category.icon }}', '{{ category.color }}', {{ category.is_featured|yesno:'true,false' }}, {{ category.is_active|yesno:'true,false' }})">
+                                            <i class="fas fa-edit me-2"></i>ویرایش
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button class="dropdown-item text-danger" onclick="deleteCategory({{ category.id }}, '{{ category.name }}')">
+                                            <i class="fas fa-trash me-2"></i>حذف
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text text-muted">{{ category.description|default:"بدون توضیحات" }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-{{ category.color|default:'primary' }}">{{ category.product_count }} محصول</span>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" 
+                                           {% if category.is_active %}checked{% endif %}
+                                           onchange="toggleCategoryStatus({{ category.id }}, this.checked)">
+                                    <label class="form-check-label">فعال</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-sort me-1"></i>ترتیب: {{ category.sort_order }}
+                                </small>
+                                {% if category.is_featured %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-star me-1"></i>ویژه
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
+                </div>
+                {% empty %}
+                <div class="col-12">
                     <div class="text-center py-5">
                         <i class="fas fa-tags fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">دسته‌بندی‌یافت نشد</h5>
-                        <p class="text-muted">برای شروع اولین دسته‌بندی خود را ایجاد کنید.</p>
+                        <h5 class="text-muted">هیچ دسته‌بندی یافت نشد</h5>
+                        <p class="text-muted">برای شروع، دسته‌بندی جدیدی اضافه کنید.</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                            <i class="fas fa-plus me-1"></i>افزودن اولین دسته‌بندی
+                        </button>
                     </div>
-                    {% endif %}
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">افزودن دسته‌بندی جدید</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addCategoryForm" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="categoryName" class="form-label">نام دسته‌بندی <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="categoryName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="categorySlug" class="form-label">Slug <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="categorySlug" name="slug" required>
+                            <div class="form-text">نام انگلیسی برای URL (مثل: electronics)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="categoryIcon" class="form-label">آیکون</label>
+                            <select class="form-select" id="categoryIcon" name="icon">
+                                <option value="fas fa-box">📦 جعبه</option>
+                                <option value="fas fa-laptop">💻 لپ‌تاپ</option>
+                                <option value="fas fa-mobile-alt">📱 موبایل</option>
+                                <option value="fas fa-headphones">🎧 هدفون</option>
+                                <option value="fas fa-gamepad">🎮 گیم</option>
+                                <option value="fas fa-tshirt">👕 لباس</option>
+                                <option value="fas fa-book">📚 کتاب</option>
+                                <option value="fas fa-home">🏠 خانه</option>
+                                <option value="fas fa-car">🚗 ماشین</option>
+                                <option value="fas fa-camera">📷 دوربین</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="categoryColor" class="form-label">رنگ</label>
+                            <select class="form-select" id="categoryColor" name="color">
+                                <option value="primary">آبی</option>
+                                <option value="success">سبز</option>
+                                <option value="warning">زرد</option>
+                                <option value="danger">قرمز</option>
+                                <option value="info">آبی روشن</option>
+                                <option value="secondary">خاکستری</option>
+                                <option value="dark">تیره</option>
+                                <option value="light">روشن</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="categorySortOrder" class="form-label">ترتیب</label>
+                            <input type="number" class="form-control" id="categorySortOrder" name="sort_order" value="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="categoryFeatured" name="is_featured">
+                                <label class="form-check-label" for="categoryFeatured">دسته‌بندی ویژه</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="categoryActive" name="is_active" checked>
+                                <label class="form-check-label" for="categoryActive">فعال</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                    <button type="submit" class="btn btn-success">افزودن دسته‌بندی</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ویرایش دسته‌بندی</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editCategoryForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" id="editCategoryId" name="category_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editCategoryName" class="form-label">نام دسته‌بندی <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editCategoryName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editCategorySlug" class="form-label">Slug <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editCategorySlug" name="slug" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editCategoryDescription" class="form-label">توضیحات</label>
+                        <textarea class="form-control" id="editCategoryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="editCategoryIcon" class="form-label">آیکون</label>
+                            <select class="form-select" id="editCategoryIcon" name="icon">
+                                <option value="fas fa-box">📦 جعبه</option>
+                                <option value="fas fa-laptop">💻 لپ‌تاپ</option>
+                                <option value="fas fa-mobile-alt">📱 موبایل</option>
+                                <option value="fas fa-headphones">🎧 هدفون</option>
+                                <option value="fas fa-gamepad">🎮 گیم</option>
+                                <option value="fas fa-tshirt">👕 لباس</option>
+                                <option value="fas fa-book">📚 کتاب</option>
+                                <option value="fas fa-home">🏠 خانه</option>
+                                <option value="fas fa-car">🚗 ماشین</option>
+                                <option value="fas fa-camera">📷 دوربین</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCategoryColor" class="form-label">رنگ</label>
+                            <select class="form-select" id="editCategoryColor" name="color">
+                                <option value="primary">آبی</option>
+                                <option value="success">سبز</option>
+                                <option value="warning">زرد</option>
+                                <option value="danger">قرمز</option>
+                                <option value="info">آبی روشن</option>
+                                <option value="secondary">خاکستری</option>
+                                <option value="dark">تیره</option>
+                                <option value="light">روشن</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editCategorySortOrder" class="form-label">ترتیب</label>
+                            <input type="number" class="form-control" id="editCategorySortOrder" name="sort_order" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editCategoryFeatured" name="is_featured">
+                                <label class="form-check-label" for="editCategoryFeatured">دسته‌بندی ویژه</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editCategoryActive" name="is_active">
+                                <label class="form-check-label" for="editCategoryActive">فعال</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                    <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">تأیید حذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>آیا مطمئن هستید که می‌خواهید دسته‌بندی "<span id="deleteCategoryName"></span>" را حذف کنید؟</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>هشدار:</strong> این عملیات تمام محصولات این دسته‌بندی را نیز تحت تأثیر قرار می‌دهد.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">لغو</button>
+                <form id="deleteCategoryForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" id="deleteCategoryId" name="category_id">
+                    <button type="submit" class="btn btn-danger">حذف</button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-function editCategory(id, name, slug, description, icon, color, parentId, sortOrder, isActive, isFeatured) {
-    document.getElementById('category_id').value = id;
-    document.getElementById('name').value = name;
-    document.getElementById('slug').value = slug;
-    document.getElementById('description').value = description;
-    document.getElementById('icon').value = icon;
-    document.getElementById('color').value = color;
-    document.getElementById('parent').value = parentId || '';
-    document.getElementById('sort_order').value = sortOrder;
-    document.getElementById('is_active').checked = isActive;
-    document.getElementById('is_featured').checked = isFeatured;
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate slug from name
+    const categoryName = document.getElementById('categoryName');
+    const categorySlug = document.getElementById('categorySlug');
     
-    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>به‌روزرسانی دسته‌بندی';
-    
-    // Scroll to form
-    document.querySelector('.col-md-4').scrollIntoView({ behavior: 'smooth' });
-}
+    if (categoryName && categorySlug) {
+        categoryName.addEventListener('input', function() {
+            const slug = this.value
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim('-');
+            categorySlug.value = slug;
+        });
+    }
 
-function clearForm() {
-    document.getElementById('category_id').value = '';
-    document.getElementById('name').value = '';
-    document.getElementById('slug').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('icon').value = 'fas fa-box';
-    document.getElementById('color').value = 'primary';
-    document.getElementById('parent').value = '';
-    document.getElementById('sort_order').value = '0';
-    document.getElementById('is_active').checked = true;
-    document.getElementById('is_featured').checked = false;
-    
-    document.getElementById('submitBtn').innerHTML = '<i class="fas fa-save me-1"></i>ذخیره دسته‌بندی';
-}
+    // Add category form submission
+    const addCategoryForm = document.getElementById('addCategoryForm');
+    if (addCategoryForm) {
+        addCategoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('{% url "admin_dashboard:digital_shop_categories" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('خطا: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در ارسال درخواست');
+            });
+        });
+    }
 
-// Auto-generate slug from name
-document.getElementById('name').addEventListener('input', function() {
-    const name = this.value;
-    const slug = name.toLowerCase()
-        .replace(/[^a-z0-9 -]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim('-');
-    document.getElementById('slug').value = slug;
+    // Edit category form submission
+    const editCategoryForm = document.getElementById('editCategoryForm');
+    if (editCategoryForm) {
+        editCategoryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch('{% url "admin_dashboard:digital_shop_categories" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('خطا: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('خطا در ارسال درخواست');
+            });
+        });
+    }
 });
+
+function editCategory(id, name, description, icon, color, isFeatured, isActive) {
+    document.getElementById('editCategoryId').value = id;
+    document.getElementById('editCategoryName').value = name;
+    document.getElementById('editCategorySlug').value = name.toLowerCase().replace(/\s+/g, '-');
+    document.getElementById('editCategoryDescription').value = description;
+    document.getElementById('editCategoryIcon').value = icon;
+    document.getElementById('editCategoryColor').value = color;
+    document.getElementById('editCategoryFeatured').checked = isFeatured;
+    document.getElementById('editCategoryActive').checked = isActive;
+    
+    const editModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+    editModal.show();
+}
+
+function deleteCategory(id, name) {
+    document.getElementById('deleteCategoryId').value = id;
+    document.getElementById('deleteCategoryName').textContent = name;
+    
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteCategoryModal'));
+    deleteModal.show();
+}
+
+function toggleCategoryStatus(id, isActive) {
+    fetch('{% url "admin_dashboard:digital_shop_categories" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            action: 'toggle_status',
+            category_id: id,
+            is_active: isActive
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            alert('خطا: ' + data.message);
+            // Revert the toggle
+            const checkbox = document.querySelector(`[data-category-id="${id}"] .form-check-input`);
+            checkbox.checked = !isActive;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در تغییر وضعیت');
+        // Revert the toggle
+        const checkbox = document.querySelector(`[data-category-id="${id}"] .form-check-input`);
+        checkbox.checked = !isActive;
+    });
+}
 </script>
 
 <style>
-.card {
+.category-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+}
+
+.category-card .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+.category-card .card-footer {
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.form-control, .form-select {
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
 }
 
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
-.table th {
-    border-top: none;
+.btn {
+    border-radius: 10px;
     font-weight: 600;
 }
 
 .badge {
-    font-size: 0.75em;
+    font-size: 0.8em;
+    padding: 0.5em 0.8em;
 }
 
-.btn-group .btn {
-    margin-right: 2px;
+.dropdown-menu {
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.dropdown-item:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 </style>
 {% endblock %} 

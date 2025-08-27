@@ -16,12 +16,11 @@ class PrintOrderForm(forms.ModelForm):
     class Meta:
         model = PrintOrder
         fields = [
-            'name', 'email', 'phone', 'color_mode', 'side_type', 
+            'name', 'phone', 'color_mode', 'side_type', 
             'paper_size', 'num_copies', 'delivery_method', 'address', 'payment_method'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your Name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your@email.com'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
             'color_mode': forms.Select(attrs={'class': 'form-control'}),
             'side_type': forms.Select(attrs={'class': 'form-control'}),

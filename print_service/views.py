@@ -2,14 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-# from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.utils import timezone
 from .forms import PrintOrderForm, UploadedFileForm
 from .models import PrintOrder, UploadedFile
 from django.urls import reverse
 import os
+import json
 from django.contrib.admin.views.decorators import staff_member_required
 from typing_service.models import TypingOrder
 from .models import PaymentSettings
@@ -19,12 +20,18 @@ from .models import PrintPriceSettings
 # -------------------------
 # سفارش جدید و آپلود فایل
 # -------------------------
+@login_required
 def order_create(request):
     if request.method == 'POST':
         order_form = PrintOrderForm(request.POST)
         file_form = UploadedFileForm(request.POST, request.FILES)
         if order_form.is_valid() and file_form.is_valid():
-            order = order_form.save()
+            order = order_form.save(commit=False)
+            # Set email from authenticated user
+            if request.user.is_authenticated:
+                order.email = request.user.email
+            order.save()
+            
             uploaded_file = file_form.save(commit=False)
             uploaded_file.order = order
             uploaded_file.save()
@@ -180,25 +187,24 @@ def order_track(request):
         print("[DEBUG] No bank info found")
 
     # --- Handle payment slip upload ---
-    from .forms import PrintOrderSlipForm
-    payment_form = PrintOrderSlipForm(instance=order) if order else PrintOrderSlipForm()
-    if request.method == 'POST' and order:
-        if 'upload_slip' in request.POST:
-            payment_form = PrintOrderSlipForm(request.POST, request.FILES, instance=order)
-            if payment_form.is_valid():
-                order.status = 'awaiting_approval'
-                payment_form.save()
-                from django.contrib import messages
-                messages.success(request, 'Your payment slip has been uploaded and is awaiting approval.')
-                from django.urls import reverse
-                return redirect(f"{reverse('print_service:order_track')}?order_id={order.id}&email={order.email}")
+    # payment_form = PrintOrderSlipForm(instance=order) if order else PrintOrderSlipForm()
+    # if request.method == 'POST' and order:
+    #     if 'upload_slip' in request.POST:
+    #         payment_form = PrintOrderSlipForm(request.POST, request.FILES, instance=order)
+    #         if payment_form.is_valid():
+    #             order.status = 'awaiting_approval'
+    #             payment_form.save()
+    #             from django.contrib import messages
+    #             messages.success(request, 'Your payment slip has been uploaded and is awaiting approval.')
+    #             from django.urls import reverse
+    #             return redirect(f"{reverse('print_service:order_track')}?order_id={order.id}&email={order.email}")
 
     context = {
         'order': order,
         'progress_steps': progress_steps,
         'current_step_index': current_step_index,
         'error': error,
-        'payment_form': payment_form,
+        # 'payment_form': payment_form,
         'bank_info': bank_info,
         'order_id': order_id or '',
         'email': email or '',
@@ -290,9 +296,27 @@ def unified_order_track(request):
 
 def order_list(request):
     orders = PrintOrder.objects.all().order_by('-created_at')
-    paginator = Paginator(orders, 20)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'print_service/order_list.html', {'page_obj': page_obj})
+    return render(request, 'print_service/order_list.html', {'orders': orders})
+
+@login_required
+def my_orders(request):
+    """My Orders page for authenticated users"""
+    user_email = request.user.email
+    
+    orders = PrintOrder.objects.filter(email=user_email).order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(orders, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'orders': page_obj,
+        'total_orders': orders.count(),
+        'debug_email': user_email,  # For debugging
+    }
+    
+    return render(request, 'print_service/my_orders.html', context)
 
 def order_debug_list(request):
     orders = PrintOrder.objects.all().order_by('-created_at')
@@ -449,4 +473,195 @@ def store_order(request):
         'accessories': accessories,
     }
     return render(request, 'print_service/store_order.html', context)
+
+
+def accessories_api(request):
+    """API endpoint for accessories data"""
+    from .models import Accessory
+    try:
+        accessories = Accessory.objects.filter(is_active=True, service_type__in=['print', 'both']).order_by('category', 'sort_order')
+        
+        # Group accessories by category
+        accessories_by_category = {}
+        for accessory in accessories:
+            if accessory.category not in accessories_by_category:
+                accessories_by_category[accessory.category] = []
+            accessories_by_category[accessory.category].append({
+                'id': accessory.id,
+                'name': accessory.name,
+                'description': accessory.description,
+                'base_price': float(accessory.base_price),
+                'category': accessory.category,
+                'service_type': accessory.service_type,
+                'is_active': accessory.is_active,
+                'is_featured': accessory.is_featured,
+                'icon': accessory.icon,
+                'color': accessory.color,
+            })
+        
+        return JsonResponse({
+            'accessories_by_category': accessories_by_category,
+            'success': True
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'success': False}, status=500)
+
+
+def typing_accessories_api(request):
+    """API endpoint for typing accessories data"""
+    from .models import Accessory
+    try:
+        accessories = Accessory.objects.filter(is_active=True, service_type__in=['typing', 'both']).order_by('category', 'sort_order')
+        
+        # Group accessories by category
+        accessories_by_category = {}
+        for accessory in accessories:
+            if accessory.category not in accessories_by_category:
+                accessories_by_category[accessory.category] = []
+            accessories_by_category[accessory.category].append({
+                'id': accessory.id,
+                'name': accessory.name,
+                'description': accessory.description,
+                'base_price': float(accessory.base_price),
+                'category': accessory.category,
+                'service_type': accessory.service_type,
+                'is_active': accessory.is_active,
+                'is_featured': accessory.is_featured,
+                'icon': accessory.icon,
+                'color': accessory.color,
+            })
+        
+        return JsonResponse({
+            'accessories_by_category': accessories_by_category,
+            'success': True
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e), 'success': False}, status=500)
+
+# API Endpoints for React Frontend
+@csrf_exempt
+def api_create_order(request):
+    """API endpoint for creating print orders"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            
+            # Extract data from request
+            email = data.get('email', request.user.email if request.user.is_authenticated else '')
+            phone = data.get('phone', '')
+            pages = int(data.get('pages', 1))
+            copies = int(data.get('copies', 1))
+            paper_size = data.get('paper_size', 'A4')
+            color_type = data.get('color_type', 'black_white')
+            double_sided = data.get('double_sided', False)
+            notes = data.get('notes', '')
+            
+            # Map frontend fields to model fields
+            color_mode = 'color' if color_type == 'color' else 'bw'
+            side_type = 'double' if double_sided else 'single'
+            
+            # Create the order
+            order = PrintOrder.objects.create(
+                name=data.get('name', 'Customer'),  # Default name if not provided
+                email=email,
+                phone=phone,
+                color_mode=color_mode,
+                side_type=side_type,
+                paper_size=paper_size,
+                num_copies=copies,
+                delivery_method='pickup',
+                payment_method='online',
+                status='pending'
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'سفارش چاپ با موفقیت ثبت شد',
+                'order_id': order.id,
+                'order_data': {
+                    'id': order.id,
+                    'name': order.name,
+                    'email': order.email,
+                    'phone': order.phone,
+                    'paper_size': order.paper_size,
+                    'color_mode': order.color_mode,
+                    'side_type': order.side_type,
+                    'num_copies': order.num_copies,
+                    'delivery_method': order.delivery_method,
+                    'payment_method': order.payment_method,
+                    'status': order.status,
+                    'created_at': order.created_at.isoformat()
+                }
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'داده‌های ارسالی نامعتبر است'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در ثبت سفارش: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
+
+@csrf_exempt  
+def api_my_orders(request):
+    """API endpoint to get user's print orders"""
+    if request.method == 'GET':
+        try:
+            email = request.GET.get('email')
+            if not email and request.user.is_authenticated:
+                email = request.user.email
+            
+            if not email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'ایمیل مورد نیاز است'
+                }, status=400)
+            
+            orders = PrintOrder.objects.filter(email__iexact=email).order_by('-created_at')
+            
+            orders_data = []
+            for order in orders:
+                # Get accessories for this order
+                accessories = order.accessories.all()
+                accessories_data = [{
+                    'name': acc.accessory.name,
+                    'quantity': acc.quantity,
+                    'price': float(acc.price)
+                } for acc in accessories]
+                
+                order_data = {
+                    'id': order.id,
+                    'name': order.name,
+                    'email': order.email,
+                    'phone': order.phone,
+                    'paper_size': order.paper_size,
+                    'color_mode': order.color_mode,
+                    'side_type': order.side_type,
+                    'num_copies': order.num_copies,
+                    'delivery_method': order.delivery_method,
+                    'payment_method': order.payment_method,
+                    'status': order.status,
+                    'created_at': order.created_at.isoformat(),
+                    'accessories': accessories_data,
+                    'total_price': float(order.get_total_price())
+                }
+                orders_data.append(order_data)
+            
+            return JsonResponse({
+                'success': True,
+                'orders': orders_data
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'خطا در دریافت سفارشات: {str(e)}'
+            }, status=500)
+    
+    return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 

@@ -1,139 +1,221 @@
 {% extends 'print_service/base.html' %}
-{% load static %}
 {% load i18n %}
 
 {% block title %}تنظیمات پرداخت{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="mb-1">
-                <i class="fas fa-credit-card text-info me-2"></i>تنظیمات پرداخت
-            </h2>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:dashboard' %}">داشبورد</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'admin_dashboard:settings_dashboard' %}">تنظیمات</a></li>
-                    <li class="breadcrumb-item active">تنظیمات پرداخت</li>
-                </ol>
-            </nav>
-        </div>
-        <div>
-            <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-outline-secondary me-2">
-                <i class="fas fa-arrow-left me-1"></i>بازگشت
-            </a>
-        </div>
-    </div>
-
-    <!-- Payment Settings Form -->
+<div class="container mt-4">
     <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-university me-2"></i>اطلاعات بانکی
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="bank_name" class="form-label">نام بانک *</label>
-                                <input type="text" class="form-control" id="bank_name" name="bank_name" 
-                                       value="{{ settings.bank_name|default:'' }}" required>
-                                <div class="form-text">مثال: بانک ملی ایران</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="card_number" class="form-label">شماره کارت *</label>
-                                <input type="text" class="form-control" id="card_number" name="card_number" 
-                                       value="{{ settings.card_number|default:'' }}" required>
-                                <div class="form-text">شماره ۱۶ رقمی کارت بانکی</div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="account_holder" class="form-label">صاحب حساب</label>
-                                <input type="text" class="form-control" id="account_holder" name="account_holder" 
-                                       value="{{ settings.account_holder|default:'' }}">
-                                <div class="form-text">نام صاحب حساب کارت</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="shaba_number" class="form-label">شماره شبا</label>
-                                <input type="text" class="form-control" id="shaba_number" name="shaba_number" 
-                                       value="{{ settings.shaba_number|default:'' }}">
-                                <div class="form-text">شماره شبا (اختیاری)</div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="payment_instructions" class="form-label">دستورالعمل پرداخت</label>
-                            <textarea class="form-control" id="payment_instructions" name="payment_instructions" rows="4">{{ settings.payment_instructions|default:'' }}</textarea>
-                            <div class="form-text">دستورالعمل‌های پرداخت برای مشتریان</div>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-save me-2"></i>ذخیره تنظیمات پرداخت
-                            </button>
-                        </div>
-                    </form>
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-credit-card text-primary me-2"></i>تنظیمات پرداخت</h2>
+                <div>
+                    <a href="{% url 'admin_dashboard:settings_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>بازگشت به تنظیمات
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Current Settings Preview -->
-    <div class="row mt-4">
-        <div class="col-lg-8 mx-auto">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>تنظیمات فعلی
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 border rounded mb-3">
-                                <i class="fas fa-university fa-2x text-info me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">بانک</h6>
-                                    <p class="mb-0 text-muted">{{ settings.bank_name|default:"تنظیم نشده" }}</p>
-                                </div>
-                            </div>
+            <!-- Payment Settings Form -->
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">اطلاعات حساب بانکی</h5>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 border rounded mb-3">
-                                <i class="fas fa-credit-card fa-2x text-success me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">شماره کارت</h6>
-                                    <p class="mb-0 text-muted">{{ settings.card_number|default:"تنظیم نشده" }}</p>
+                        <div class="card-body">
+                            <form method="post" id="paymentSettingsForm">
+                                {% csrf_token %}
+                                
+                                <!-- Bank Account Information -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-university me-2"></i>اطلاعات حساب بانکی
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="bank_name" class="form-label">نام بانک <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="bank_name" name="bank_name" 
+                                               value="{{ payment_settings.bank_name|default:'' }}" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="account_number" class="form-label">شماره حساب <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="account_number" name="account_number" 
+                                               value="{{ payment_settings.account_number|default:'' }}" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="card_number" class="form-label">شماره کارت <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="card_number" name="card_number" 
+                                               value="{{ payment_settings.card_number|default:'' }}" required
+                                               placeholder="6037-1234-5678-9012">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="account_holder" class="form-label">نام صاحب حساب <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="account_holder" name="account_holder" 
+                                               value="{{ payment_settings.account_holder|default:'' }}" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="shaba_number" class="form-label">شماره شبا</label>
+                                        <input type="text" class="form-control" id="shaba_number" name="shaba_number" 
+                                               value="{{ payment_settings.shaba_number|default:'' }}"
+                                               placeholder="IR123456789012345678901234">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="branch_code" class="form-label">کد شعبه</label>
+                                        <input type="text" class="form-control" id="shaba_number" name="branch_code" 
+                                               value="{{ payment_settings.branch_code|default:'' }}">
+                                    </div>
+                                </div>
+
+                                <!-- Payment Instructions -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-info-circle me-2"></i>دستورالعمل‌های پرداخت
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-12 mb-3">
+                                        <label for="payment_instructions" class="form-label">دستورالعمل‌های پرداخت</label>
+                                        <textarea class="form-control" id="payment_instructions" name="payment_instructions" 
+                                                  rows="4" placeholder="دستورالعمل‌های لازم برای پرداخت را وارد کنید...">{{ payment_settings.payment_instructions|default:'' }}</textarea>
+                                        <div class="form-text">این متن در صفحه پرداخت به کاربر نمایش داده می‌شود</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="order_validity_hours" class="form-label">اعتبار سفارش (ساعت)</label>
+                                        <input type="number" class="form-control" id="order_validity_hours" name="order_validity_hours" 
+                                               value="{{ payment_settings.order_validity_hours|default:24 }}" min="1" max="168">
+                                        <div class="form-text">مدت زمان اعتبار سفارش برای پرداخت (پیش‌فرض: 24 ساعت)</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="min_order_amount" class="form-label">حداقل مبلغ سفارش (تومان)</label>
+                                        <input type="number" class="form-control" id="min_order_amount" name="min_order_amount" 
+                                               value="{{ payment_settings.min_order_amount|default:0 }}" min="0">
+                                        <div class="form-text">حداقل مبلغ سفارش برای فعال شدن گزینه پرداخت</div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Settings -->
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h6 class="text-primary mb-3">
+                                            <i class="fas fa-cog me-2"></i>تنظیمات اضافی
+                                        </h6>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                                   {% if payment_settings.is_active %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                فعال کردن سیستم پرداخت
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="require_receipt" name="require_receipt" 
+                                                   {% if payment_settings.require_receipt %}checked{% endif %}>
+                                            <label class="form-check-label" for="require_receipt">
+                                                الزامی بودن آپلود رسید پرداخت
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="auto_approve_payments" name="auto_approve_payments" 
+                                                   {% if payment_settings.auto_approve_payments %}checked{% endif %}>
+                                            <label class="form-check-label" for="auto_approve_payments">
+                                                تایید خودکار پرداخت‌ها
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="send_payment_notifications" name="send_payment_notifications" 
+                                                   {% if payment_settings.send_payment_notifications %}checked{% endif %}>
+                                            <label class="form-check-label" for="send_payment_notifications">
+                                                ارسال اعلان‌های پرداخت
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-save me-1"></i>ذخیره تنظیمات
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-md-4">
+                    <!-- Preview Card -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h6 class="mb-0">پیش‌نمایش کارت بانکی</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="bank-card-preview">
+                                <div class="bank-card">
+                                    <div class="bank-card-header">
+                                        <div class="bank-logo">
+                                            <i class="fas fa-university"></i>
+                                        </div>
+                                        <div class="card-type">
+                                            <i class="fab fa-cc-mastercard"></i>
+                                        </div>
+                                    </div>
+                                    <div class="card-number" id="previewCardNumber">
+                                        {{ payment_settings.card_number|default:"6037-1234-5678-9012" }}
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="card-holder">
+                                            <span class="label">صاحب کارت:</span>
+                                            <span class="value" id="previewCardHolder">{{ payment_settings.account_holder|default:"نام صاحب حساب" }}</span>
+                                        </div>
+                                        <div class="bank-name" id="previewBankName">
+                                            {{ payment_settings.bank_name|default:"نام بانک" }}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <i class="fas fa-user fa-2x text-warning me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">صاحب حساب</h6>
-                                    <p class="mb-0 text-muted">{{ settings.account_holder|default:"تنظیم نشده" }}</p>
-                                </div>
-                            </div>
+
+                    <!-- Help Section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">راهنمای تنظیمات</h6>
                         </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center p-3 border rounded">
-                                <i class="fas fa-calendar fa-2x text-primary me-3"></i>
-                                <div>
-                                    <h6 class="mb-1">آخرین بروزرسانی</h6>
-                                    <p class="mb-0 text-muted">{{ settings.updated_at|date:"Y-m-d H:i"|default:"هیچ‌وقت" }}</p>
-                                </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-lightbulb me-2"></i>نکات مهم:</h6>
+                                <ul class="mb-0 mt-2">
+                                    <li>اطلاعات حساب بانکی باید دقیق و صحیح باشد</li>
+                                    <li>شماره کارت باید 16 رقم باشد</li>
+                                    <li>شماره شبا با IR شروع می‌شود</li>
+                                    <li>دستورالعمل‌های پرداخت برای کاربران نمایش داده می‌شود</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -142,4 +224,199 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Real-time preview updates
+    const cardNumber = document.getElementById('card_number');
+    const cardHolder = document.getElementById('account_holder');
+    const bankName = document.getElementById('bank_name');
+    
+    const previewCardNumber = document.getElementById('previewCardNumber');
+    const previewCardHolder = document.getElementById('previewCardHolder');
+    const previewBankName = document.getElementById('previewBankName');
+    
+    if (cardNumber && previewCardNumber) {
+        cardNumber.addEventListener('input', function() {
+            previewCardNumber.textContent = this.value || '6037-1234-5678-9012';
+        });
+    }
+    
+    if (cardHolder && previewCardHolder) {
+        cardHolder.addEventListener('input', function() {
+            previewCardHolder.textContent = this.value || 'نام صاحب حساب';
+        });
+    }
+    
+    if (bankName && previewBankName) {
+        bankName.addEventListener('input', function() {
+            previewBankName.textContent = this.value || 'نام بانک';
+        });
+    }
+    
+    // Form validation
+    const form = document.getElementById('paymentSettingsForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const cardNumber = document.getElementById('card_number').value;
+            const accountNumber = document.getElementById('account_number').value;
+            const accountHolder = document.getElementById('account_holder').value;
+            const bankName = document.getElementById('bank_name').value;
+            
+            if (!cardNumber || !accountNumber || !accountHolder || !bankName) {
+                e.preventDefault();
+                alert('لطفاً تمام فیلدهای الزامی را پر کنید');
+                return false;
+            }
+            
+            // Validate card number format
+            const cardNumberClean = cardNumber.replace(/\D/g, '');
+            if (cardNumberClean.length !== 16) {
+                e.preventDefault();
+                alert('شماره کارت باید 16 رقم باشد');
+                return false;
+            }
+            
+            // Validate account number
+            if (accountNumber.length < 10) {
+                e.preventDefault();
+                alert('شماره حساب باید حداقل 10 رقم باشد');
+                return false;
+            }
+        });
+    }
+    
+    // Format card number input
+    if (cardNumber) {
+        cardNumber.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 16) {
+                value = value.substr(0, 16);
+            }
+            
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += '-';
+                }
+                formattedValue += value[i];
+            }
+            
+            this.value = formattedValue;
+        });
+    }
+});
+</script>
+
+<style>
+.bank-card-preview {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
+.bank-card {
+    width: 100%;
+    max-width: 300px;
+    height: 180px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.bank-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.bank-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.bank-logo i {
+    font-size: 24px;
+    color: rgba(255,255,255,0.8);
+}
+
+.card-type i {
+    font-size: 28px;
+    color: rgba(255,255,255,0.9);
+}
+
+.card-number {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.card-holder {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-holder .label {
+    font-size: 10px;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.card-holder .value {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.bank-name {
+    font-size: 10px;
+    opacity: 0.8;
+    text-align: right;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.card {
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-2px);
+}
+</style>
 {% endblock %} 

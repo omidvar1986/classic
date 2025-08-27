@@ -1,0 +1,31 @@
+{% extends 'print_service/base.html' %}
+
+{% block title %}Accessories Debug{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Accessories Debug Information</h2>
+    
+    <div class="row">
+        <div class="col-12">
+            <h3>Raw accessories_by_category data:</h3>
+            <pre>{{ accessories_by_category|pprint }}</pre>
+            
+            <h3>Accessories count by category:</h3>
+            {% for category, accessories in accessories_by_category.items %}
+                <p><strong>{{ category }}:</strong> {{ accessories|length }} items</p>
+                <ul>
+                    {% for accessory in accessories %}
+                        <li>{{ accessory.name }} - {{ accessory.service_type }} - Active: {{ accessory.is_active }}</li>
+                    {% endfor %}
+                </ul>
+            {% empty %}
+                <p class="text-danger">No accessories found in accessories_by_category!</p>
+            {% endfor %}
+            
+            <h3>Form object:</h3>
+            <pre>{{ form|pprint }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

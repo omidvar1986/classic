@@ -3,218 +3,575 @@
 
 {% block title %}{% trans "Create Print Order - Smart Office" %}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .print-form-container {
+        background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+        min-height: 100vh;
+        padding: 2rem 0;
+    }
+    
+    .form-card {
+        background: rgba(255, 255, 255, 0.98);
+        /* Remove backdrop-filter for compatibility */
+        /* backdrop-filter: blur(10px); */
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #FF5722 0%, #FF7043 100%);
+        border-radius: 20px 20px 0 0;
+        padding: 2rem;
+        text-align: center;
+        color: white;
+    }
+    
+    .form-header h2 {
+        margin: 0;
+        font-weight: 300;
+        font-size: 2.2rem;
+    }
+    
+    .form-header p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.9;
+    }
+    
+    .form-section {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 0;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .section-title {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .section-title i {
+        color: #FF5722;
+        margin-right: 10px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 2px solid #e1e5e9;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #FF5722;
+        box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+    }
+    
+    .print-options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .option-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .option-card:hover {
+        border-color: #FF5722;
+        box-shadow: 0 5px 20px rgba(255, 87, 34, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .option-card.selected {
+        border-color: #FF5722;
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        box-shadow: 0 5px 20px rgba(255, 87, 34, 0.3);
+    }
+    
+    .option-icon {
+        font-size: 2rem;
+        color: #FF5722;
+        margin-bottom: 1rem;
+    }
+    
+    .option-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .option-description {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .accessory-card {
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        background: white;
+        cursor: pointer;
+        overflow: hidden;
+    }
+    
+    .accessory-card:hover {
+        border-color: #FF5722;
+        box-shadow: 0 5px 20px rgba(255, 87, 34, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .accessory-card.selected {
+        border-color: #FF5722;
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        box-shadow: 0 5px 20px rgba(255, 87, 34, 0.3);
+    }
+    
+    .price-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        border: 1px solid #dee2e6;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(135deg, #FF5722 0%, #FF7043 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(255, 87, 34, 0.4);
+    }
+    
+    .file-upload-area {
+        border: 2px dashed #FF5722;
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        background: rgba(255, 87, 34, 0.05);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .file-upload-area:hover {
+        background: rgba(255, 87, 34, 0.1);
+        border-color: #FF7043;
+    }
+    
+    .category-badge {
+        background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .price-badge {
+        background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+        border-radius: 30px;
+        padding: 5px 12px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    .delivery-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-card:hover {
+        border-color: #FF5722;
+        box-shadow: 0 3px 10px rgba(255, 87, 34, 0.1);
+    }
+    
+    .delivery-card.selected {
+        border-color: #FF5722;
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    }
+    
+    .copies-input-group {
+        max-width: 200px;
+        margin: 0 auto;
+    }
+    
+    .copies-btn {
+        background: #FF5722;
+        color: white;
+        border: 1px solid #FF5722;
+    }
+    
+    .copies-btn:hover {
+        background: #E64A19;
+        border-color: #E64A19;
+        color: white;
+    }
+    
+    @media (max-width: 768px) {
+        .print-form-container {
+            padding: 1rem 0;
+        }
+        
+        .form-section {
+            padding: 1.5rem;
+        }
+        
+        .form-header h2 {
+            font-size: 1.8rem;
+        }
+        
+        .print-options-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-print me-2"></i>{% trans "Create New Print Order" %}</h4>
-            </div>
-            <div class="card-body">
-                {% if form.errors or file_form.errors %}
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        {% for field in order_form %}
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                        {% for error in order_form.non_field_errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                        {% for field in file_form %}
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                        {% for error in file_form.non_field_errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-                <form method="post" enctype="multipart/form-data" id="orderForm">
-                    {% csrf_token %}
-                    <!-- Customer Info -->
-                    <h5 class="mb-3">{% trans "Customer Information" %}</h5>
-                    <div class="mb-3">
-                        {{ order_form.name.label_tag }}
-                        {{ order_form.name }}
-                        {{ order_form.name.errors }}
-                    </div>
-                    <div class="mb-3">
-                        {{ order_form.email.label_tag }}
-                        {{ order_form.email }}
-                        {{ order_form.email.errors }}
-                    </div>
-                    <div class="mb-3">
-                        {{ order_form.phone.label_tag }}
-                        {{ order_form.phone }}
-                        {{ order_form.phone.errors }}
-                    </div>
-                    <!-- Print Options -->
-                    <h5 class="mt-4 mb-3">{% trans "Print Options" %}</h5>
-                    <div class="mb-3">
-                        {{ order_form.color_mode.label_tag }}
-                        {{ order_form.color_mode }}
-                        {{ order_form.color_mode.errors }}
-                    </div>
-                    <div class="mb-3">
-                        {{ order_form.side_type.label_tag }}
-                        {{ order_form.side_type }}
-                        {{ order_form.side_type.errors }}
-                    </div>
-                    <div class="mb-3">
-                        {{ order_form.paper_size.label_tag }}
-                        {{ order_form.paper_size }}
-                        {{ order_form.paper_size.errors }}
-                    </div>
-                    <div class="mb-3">
-                        {{ order_form.num_copies.label_tag }}
-                        {{ order_form.num_copies }}
-                        {{ order_form.num_copies.errors }}
+<div class="print-form-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2><i class="fas fa-print me-3"></i>{% trans "New Print Order" %}</h2>
+                        <p>{% trans "Professional printing services at your fingertips" %}</p>
                     </div>
                     
-                    <!-- Accessories & Finishing Options -->
-                    <h5 class="mt-4 mb-3">
-                        <i class="fas fa-tools me-2"></i>{% trans "Accessories & Finishing Options" %}
-                    </h5>
-                    <div class="accessories-section mb-4">
-                        <!-- Package Deals -->
-                        <div class="package-deals mb-4" id="package-deals" style="display: none;">
-                            <h6 class="text-success mb-3">
-                                <i class="fas fa-gift me-2"></i>{% trans "Special Package Deals" %}
-                            </h6>
-                            <div class="row" id="package-deals-container">
-                                <!-- Package deals will be loaded here -->
+                    {% if form.errors or file_form.errors %}
+                    <div class="alert alert-danger m-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:</h6>
+                        <ul class="mb-0">
+                            {% for field in order_form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in order_form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                            {% for field in file_form %}
+                                {% for error in field.errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in file_form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" id="orderForm">
+                        {% csrf_token %}
+                        
+                        <!-- Customer Information Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-user-circle"></i>
+                                {% trans "Customer Information" %}
+                            </h3>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ order_form.name }}
+                                        <label for="{{ order_form.name.id_for_label }}">{% trans "Your Name" %}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        {{ order_form.phone }}
+                                        <label for="{{ order_form.phone.id_for_label }}">{% trans "Phone Number" %}</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <!-- Accessories by Category -->
-                        <div class="accessories-categories">
-                            {% for category, accessories in accessories_by_category.items %}
-                            <div class="accessory-category mb-4">
-                                <h6 class="category-title mb-3">
-                                    <i class="fas fa-tag me-2"></i>
-                                    {% if category == 'binding' %}
-                                        {% trans "Binding Options" %}
-                                    {% elif category == 'finishing' %}
-                                        {% trans "Finishing Options" %}
-                                    {% elif category == 'packaging' %}
-                                        {% trans "Packaging Options" %}
-                                    {% else %}
-                                        {{ category|title }}
-                                    {% endif %}
-                                </h6>
-                                <div class="row">
-                                    {% for accessory in accessories %}
-                                    <div class="col-md-6 mb-3">
-                                        <div class="accessory-card border rounded p-3 h-100">
-                                            <div class="form-check">
-                                                <input class="form-check-input accessory-checkbox" 
-                                                       type="checkbox" 
-                                                       id="accessory_{{ accessory.id }}"
-                                                       data-accessory-id="{{ accessory.id }}"
-                                                       data-price="{{ accessory.base_price }}"
-                                                       data-category="{{ accessory.category }}"
-                                                       data-icon="{{ accessory.icon }}">
-                                                <label class="form-check-label w-100" for="accessory_{{ accessory.id }}">
-                                                    <div class="accessory-info">
-                                                        <div class="accessory-header d-flex justify-content-between align-items-start mb-2">
-                                                            <div>
-                                                                <i class="{{ accessory.icon }} me-2 text-primary"></i>
-                                                                <strong>{{ accessory.name }}</strong>
-                                                            </div>
-                                                            <span class="price-badge badge bg-success">+{{ accessory.base_price|floatformat:0 }} تومان</span>
+                        <!-- Print Options Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-cogs"></i>
+                                {% trans "Print Options" %}
+                            </h3>
+                            
+                            <div class="row g-4">
+                                <!-- Color Mode -->
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Color Mode" %}</label>
+                                    <div class="print-options-grid" style="grid-template-columns: 1fr 1fr;">
+                                        <div class="option-card" data-option="color_mode" data-value="bw">
+                                            <div class="option-icon">
+                                                <i class="fas fa-circle text-dark"></i>
+                                            </div>
+                                            <div class="option-title">Black & White</div>
+                                            <div class="option-description">Standard monochrome printing</div>
+                                        </div>
+                                        <div class="option-card" data-option="color_mode" data-value="color">
+                                            <div class="option-icon">
+                                                <i class="fas fa-palette"></i>
+                                            </div>
+                                            <div class="option-title">Color</div>
+                                            <div class="option-description">Full color printing</div>
+                                        </div>
+                                    </div>
+                                    {{ order_form.color_mode }}
+                                </div>
+                                
+                                <!-- Side Type -->
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Print Sides" %}</label>
+                                    <div class="print-options-grid" style="grid-template-columns: 1fr 1fr;">
+                                        <div class="option-card" data-option="side_type" data-value="single">
+                                            <div class="option-icon">
+                                                <i class="fas fa-file-alt"></i>
+                                            </div>
+                                            <div class="option-title">Single Sided</div>
+                                            <div class="option-description">Print on one side only</div>
+                                        </div>
+                                        <div class="option-card" data-option="side_type" data-value="double">
+                                            <div class="option-icon">
+                                                <i class="fas fa-copy"></i>
+                                            </div>
+                                            <div class="option-title">Double Sided</div>
+                                            <div class="option-description">Print on both sides</div>
+                                        </div>
+                                    </div>
+                                    {{ order_form.side_type }}
+                                </div>
+                                
+                                <!-- Paper Size -->
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Paper Size" %}</label>
+                                    <div class="form-floating">
+                                        {{ order_form.paper_size }}
+                                        <label for="{{ order_form.paper_size.id_for_label }}">Select paper size</label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Number of Copies -->
+                                <div class="col-md-6">
+                                    <label class="form-label">{% trans "Number of Copies" %}</label>
+                                    <div class="copies-input-group input-group">
+                                        <button type="button" class="btn copies-btn" id="decrease-copies">-</button>
+                                        {{ order_form.num_copies }}
+                                        <button type="button" class="btn copies-btn" id="increase-copies">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-file-upload"></i>
+                                {% trans "Upload File" %}
+                            </h3>
+                            
+                            <div class="file-upload-area mb-3" id="drop-area">
+                                <input type="file" id="{{ file_form.file.id_for_label }}" name="{{ file_form.file.html_name }}" class="d-none" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                                <div class="text-center">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                    <h5>{% trans "Drag & Drop your file here" %}</h5>
+                                    <p class="text-muted">{% trans "or" %}</p>
+                                    <button type="button" class="btn btn-outline-primary" id="browse-files">
+                                        <i class="fas fa-folder-open me-2"></i>{% trans "Browse Files" %}
+                                    </button>
+                                    <p class="mt-3 small text-muted">{% trans "Allowed formats: PDF, JPG, PNG, DOC, DOCX. Max size: 10MB." %}</p>
+                                </div>
+                                <div id="file-info" class="mt-3 d-none">
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span id="file-name"></span>
+                                        <button type="button" class="btn-close float-end" id="remove-file"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Accessories & Finishing Options -->
+                        {% if accessories_by_category %}
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-tools"></i>
+                                {% trans "Accessories & Finishing Options" %}
+                            </h3>
+                            
+                            <!-- Accessories by Category -->
+                            <div class="accessories-categories">
+                                {% for category, accessories in accessories_by_category.items %}
+                                <div class="accessory-category mb-4">
+                                    <div class="category-badge mb-3">
+                                        <i class="fas fa-tag me-2"></i>
+                                        {% if category == 'binding' %}
+                                            {% trans "Binding Options" %}
+                                        {% elif category == 'finishing' %}
+                                            {% trans "Finishing Options" %}
+                                        {% elif category == 'packaging' %}
+                                            {% trans "Packaging Options" %}
+                                        {% else %}
+                                            {{ category|title }}
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="row g-4">
+                                        {% for accessory in accessories %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="accessory-card h-100">
+                                                <div class="p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div>
+                                                            <i class="{{ accessory.icon }} me-2 text-primary"></i>
+                                                            <strong>{{ accessory.name }}</strong>
                                                         </div>
-                                                        <div class="accessory-description text-muted small mb-2">
-                                                            {{ accessory.description }}
-                                                        </div>
-                                                        <div class="quantity-selector" style="display: none;">
-                                                            <div class="d-flex align-items-center">
-                                                                <label class="form-label me-2 mb-0">{% trans "Quantity:" %}</label>
-                                                                <input type="number" 
-                                                                       class="form-control form-control-sm accessory-quantity" 
-                                                                       data-accessory-id="{{ accessory.id }}"
-                                                                       value="1" min="1" max="10" style="width: 80px;">
-                                                            </div>
+                                                        <span class="price-badge badge text-white">+{{ accessory.base_price|floatformat:0 }} تومان</span>
+                                                    </div>
+                                                    <div class="mb-3 small text-muted">
+                                                        {{ accessory.description }}
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input accessory-checkbox"
+                                                               type="checkbox"
+                                                               id="accessory_{{ accessory.id }}"
+                                                               data-accessory-id="{{ accessory.id }}"
+                                                               data-price="{{ accessory.base_price }}"
+                                                               data-category="{{ accessory.category }}"
+                                                               data-icon="{{ accessory.icon }}">
+                                                        <label class="form-check-label" for="accessory_{{ accessory.id }}">
+                                                            {% trans "Add to order" %}
+                                                        </label>
+                                                    </div>
+                                                    <div class="quantity-selector mt-3" style="display: none;">
+                                                        <label class="form-label mb-2">{% trans "Quantity:" %}</label>
+                                                        <div class="input-group">
+                                                            <button type="button" class="btn btn-outline-secondary quantity-minus">-</button>
+                                                            <input type="number"
+                                                                   class="form-control text-center accessory-quantity"
+                                                                   data-accessory-id="{{ accessory.id }}"
+                                                                   value="1" min="1" max="10">
+                                                            <button type="button" class="btn btn-outline-secondary quantity-plus">+</button>
                                                         </div>
                                                     </div>
-                                                </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Price Summary -->
+                            <div class="price-summary mt-4">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <i class="fas fa-calculator me-2"></i>{% trans "Price Summary" %}
+                                        </h5>
+                                        <div class="price-breakdown">
+                                            <div class="price-row d-flex justify-content-between py-2">
+                                                <span>{% trans "Base Price:" %}</span>
+                                                <span id="base-price" class="fw-bold">{{ base_price|default:50000|floatformat:0 }} تومان</span>
+                                            </div>
+                                            <div class="price-row d-flex justify-content-between py-2" id="accessories-price-row" style="display: none;">
+                                                <span>{% trans "Accessories:" %}</span>
+                                                <span id="accessories-price">0 تومان</span>
+                                            </div>
+                                            <hr>
+                                            <div class="price-row d-flex justify-content-between py-2 total">
+                                                <span><strong>{% trans "Total:" %}</strong></span>
+                                                <span id="total-price" class="fs-5 text-success"><strong>{{ base_price|default:50000|floatformat:0 }} تومان</strong></span>
                                             </div>
                                         </div>
                                     </div>
-                                    {% endfor %}
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
+                        {% endif %}
                         
-                        <!-- Price Summary -->
-                        <div class="price-summary mt-4">
-                            <div class="card bg-light">
-                                <div class="card-body">
-                                    <h6 class="card-title">
-                                        <i class="fas fa-calculator me-2"></i>{% trans "Price Summary" %}
-                                    </h6>
-                                    <div class="price-breakdown">
-                                        <div class="price-row d-flex justify-content-between">
-                                            <span>{% trans "Base Price:" %}</span>
-                                            <span id="base-price">50,000 تومان</span>
+                        <!-- Delivery Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-shipping-fast"></i>
+                                {% trans "Delivery Method" %}
+                            </h3>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="delivery-card" data-delivery="pickup">
+                                        <div class="text-center">
+                                            <i class="fas fa-store fa-2x text-primary mb-2"></i>
+                                            <h6>{% trans "Store Pickup" %}</h6>
+                                            <small class="text-muted">Pick up from our office</small>
                                         </div>
-                                        <div class="price-row d-flex justify-content-between" id="accessories-price-row" style="display: none;">
-                                            <span>{% trans "Accessories:" %}</span>
-                                            <span id="accessories-price">0 تومان</span>
-                                        </div>
-                                        <div class="price-row d-flex justify-content-between package-discount" id="package-discount-row" style="display: none;">
-                                            <span>{% trans "Package Discount:" %}</span>
-                                            <span id="package-discount" class="text-success">-0 تومان</span>
-                                        </div>
-                                        <hr>
-                                        <div class="price-row d-flex justify-content-between total">
-                                            <span><strong>{% trans "Total:" %}</strong></span>
-                                            <span id="total-price"><strong>50,000 تومان</strong></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="delivery-card" data-delivery="delivery">
+                                        <div class="text-center">
+                                            <i class="fas fa-truck fa-2x text-primary mb-2"></i>
+                                            <h6>{% trans "Home Delivery" %}</h6>
+                                            <small class="text-muted">Delivered to your address</small>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            
+                            {{ order_form.delivery_method }}
+                            
+                            <div class="mt-3" id="address-field" style="display: none;">
+                                <div class="form-floating">
+                                    {{ order_form.address }}
+                                    <label for="{{ order_form.address.id_for_label }}">{% trans "Delivery Address" %}</label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <!-- File Upload -->
-                    <h5 class="mt-4 mb-3">{% trans "Upload File" %}</h5>
-                    <div class="mb-3">
-                        {{ file_form.file.label_tag }}
-                        {{ file_form.file }}
-                        {{ file_form.file.errors }}
-                        <small class="form-text text-muted">{% trans "Allowed formats: PDF, JPG, PNG, DOC, DOCX. Max size: 10MB." %}</small>
-                    </div>
-                    <!-- Delivery -->
-                    <h5 class="mt-4 mb-3">{% trans "Delivery Method" %}</h5>
-                    <div class="mb-3">
-                        {{ order_form.delivery_method.label_tag }}
-                        {{ order_form.delivery_method }}
-                        {{ order_form.delivery_method.errors }}
-                    </div>
-                    <div class="mb-3" id="address-field" style="display: none;">
-                        {{ order_form.address.label_tag }}
-                        {{ order_form.address }}
-                        {{ order_form.address.errors }}
-                    </div>
-                    <!-- Payment -->
-                    <h5 class="mt-4 mb-3">{% trans "Payment Method" %}</h5>
-                    <div class="mb-3">
-                        {{ order_form.payment_method.label_tag }}
-                        {{ order_form.payment_method }}
-                        {{ order_form.payment_method.errors }}
-                    </div>
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                            <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                            <i class="fas fa-check me-2"></i>{% trans "Create Order" %}
-                        </button>
-                    </div>
-                </form>
+                        
+                        <!-- Payment Section -->
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-credit-card"></i>
+                                {% trans "Payment Method" %}
+                            </h3>
+                            
+                            <div class="form-floating">
+                                {{ order_form.payment_method }}
+                                <label for="{{ order_form.payment_method.id_for_label }}">Select payment method</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section text-center">
+                            <button type="submit" class="submit-btn btn btn-primary btn-lg" id="submitBtn">
+                                <span id="spinner" class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-check me-2"></i>{% trans "Create Order" %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -224,56 +581,182 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const deliveryMethod = document.getElementById('{{ order_form.delivery_method.id_for_label }}');
-    const addressField = document.getElementById('address-field');
+    // Option cards functionality
+    const optionCards = document.querySelectorAll('.option-card');
+    const deliveryCards = document.querySelectorAll('.delivery-card');
     
-    function toggleAddress() {
-        if (deliveryMethod && deliveryMethod.value === 'delivery') {
-            addressField.style.display = 'block';
-        } else {
-            addressField.style.display = 'none';
+    optionCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const optionType = this.dataset.option;
+            const value = this.dataset.value;
+            const hiddenInput = document.getElementById('id_' + optionType);
+            
+            // Remove selected class from siblings
+            const siblings = document.querySelectorAll(`[data-option="${optionType}"]`);
+            siblings.forEach(s => s.classList.remove('selected'));
+            
+            // Add selected class and update hidden input
+            this.classList.add('selected');
+            hiddenInput.value = value;
+        });
+    });
+    
+    // Delivery cards functionality
+    deliveryCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const deliveryType = this.dataset.delivery;
+            const hiddenInput = document.getElementById('{{ order_form.delivery_method.id_for_label }}');
+            const addressField = document.getElementById('address-field');
+            
+            // Remove selected class from all delivery cards
+            deliveryCards.forEach(c => c.classList.remove('selected'));
+            
+            // Add selected class and update hidden input
+            this.classList.add('selected');
+            hiddenInput.value = deliveryType;
+            
+            // Show/hide address field
+            if (deliveryType === 'delivery') {
+                addressField.style.display = 'block';
+            } else {
+                addressField.style.display = 'none';
+            }
+        });
+    });
+    
+    // Copies input functionality
+    const copiesInput = document.getElementById('{{ order_form.num_copies.id_for_label }}');
+    const decreaseBtn = document.getElementById('decrease-copies');
+    const increaseBtn = document.getElementById('increase-copies');
+    
+    decreaseBtn.addEventListener('click', function() {
+        if (parseInt(copiesInput.value) > 1) {
+            copiesInput.value = parseInt(copiesInput.value) - 1;
+        }
+    });
+    
+    increaseBtn.addEventListener('click', function() {
+        copiesInput.value = parseInt(copiesInput.value) + 1;
+    });
+    
+    // File Upload Enhancement
+    const fileInput = document.getElementById('{{ file_form.file.id_for_label }}');
+    const dropArea = document.getElementById('drop-area');
+    const browseBtn = document.getElementById('browse-files');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const removeFileBtn = document.getElementById('remove-file');
+    
+    function handleFileSelect(file) {
+        const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        
+        if (!allowed.includes(ext)) {
+            alert('Unsupported file format! Please use PDF, JPG, PNG, DOC, or DOCX formats.');
+            return false;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be under 10MB!');
+            return false;
+        }
+        
+        // Display file info
+        fileName.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
+        fileInfo.classList.remove('d-none');
+        dropArea.classList.add('border-success');
+        
+        return true;
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+    
+    // File input change
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            handleFileSelect(this.files[0]);
+        }
+    });
+    
+    // Browse button
+    browseBtn.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Remove file
+    removeFileBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        fileInfo.classList.add('d-none');
+        dropArea.classList.remove('border-success');
+    });
+    
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        dropArea.classList.add('border-primary');
+    }
+    
+    function unhighlight() {
+        dropArea.classList.remove('border-primary');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        
+        if (file) {
+            if (handleFileSelect(file)) {
+                fileInput.files = dt.files;
+            }
         }
     }
     
-    if (deliveryMethod) {
-        deliveryMethod.addEventListener('change', toggleAddress);
-        toggleAddress();
-    }
-    
-    // Accessories functionality
+    // Accessories functionality (same as typing service)
     const accessoryCheckboxes = document.querySelectorAll('.accessory-checkbox');
     const accessoryQuantities = document.querySelectorAll('.accessory-quantity');
     const basePriceElement = document.getElementById('base-price');
     const accessoriesPriceElement = document.getElementById('accessories-price');
     const accessoriesPriceRow = document.getElementById('accessories-price-row');
-    const packageDiscountElement = document.getElementById('package-discount');
-    const packageDiscountRow = document.getElementById('package-discount-row');
     const totalPriceElement = document.getElementById('total-price');
     
-    let basePrice = {{ base_price|default:50000 }}; // Base price in Tomans
+    let basePrice = {{ base_price|default:50000 }};
     let accessoriesTotal = 0;
-    let packageDiscount = 0;
     
     function formatPrice(price) {
         return price.toLocaleString('fa-IR') + ' تومان';
     }
     
     function updatePriceSummary() {
-        const total = basePrice + accessoriesTotal - packageDiscount;
+        const total = basePrice + accessoriesTotal;
         
         if (basePriceElement) basePriceElement.textContent = formatPrice(basePrice);
         if (accessoriesPriceElement) accessoriesPriceElement.textContent = formatPrice(accessoriesTotal);
-        if (packageDiscountElement) packageDiscountElement.textContent = '-' + formatPrice(packageDiscount);
         if (totalPriceElement) totalPriceElement.innerHTML = `<strong>${formatPrice(total)}</strong>`;
         
-        // Show/hide accessories price row
         if (accessoriesPriceRow) {
-            accessoriesPriceRow.style.display = accessoriesTotal > 0 ? 'block' : 'none';
-        }
-        
-        // Show/hide package discount row
-        if (packageDiscountRow) {
-            packageDiscountRow.style.display = packageDiscount > 0 ? 'block' : 'none';
+            accessoriesPriceRow.style.display = accessoriesTotal > 0 ? 'flex' : 'none';
         }
     }
     
@@ -295,20 +778,20 @@ document.addEventListener('DOMContentLoaded', function () {
     accessoryCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const accessoryId = this.dataset.accessoryId;
-            const quantitySelector = document.querySelector(`.accessory-quantity[data-accessory-id="${accessoryId}"]`);
+            const quantitySelector = document.querySelector(`.quantity-selector .accessory-quantity[data-accessory-id="${accessoryId}"]`).parentElement.parentElement;
             const accessoryCard = this.closest('.accessory-card');
             
             if (this.checked) {
                 if (quantitySelector) {
-                    quantitySelector.parentElement.style.display = 'block';
+                    quantitySelector.style.display = 'block';
                 }
                 if (accessoryCard) {
                     accessoryCard.classList.add('selected');
                 }
             } else {
                 if (quantitySelector) {
-                    quantitySelector.parentElement.style.display = 'none';
-                    quantitySelector.value = 1;
+                    quantitySelector.style.display = 'none';
+                    quantitySelector.querySelector('input').value = 1;
                 }
                 if (accessoryCard) {
                     accessoryCard.classList.remove('selected');
@@ -324,34 +807,37 @@ document.addEventListener('DOMContentLoaded', function () {
         quantityInput.addEventListener('input', calculateAccessoriesTotal);
     });
     
-    // Initialize price summary
+    // Plus and minus buttons
+    document.querySelectorAll('.quantity-plus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            if (input.value < parseInt(input.max)) {
+                input.value = parseInt(input.value) + 1;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    document.querySelectorAll('.quantity-minus').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input');
+            if (input.value > parseInt(input.min)) {
+                input.value = parseInt(input.value) - 1;
+                input.dispatchEvent(new Event('change'));
+            }
+        });
+    });
+    
+    // Initialize
     updatePriceSummary();
     
-    // Spinner on submit
+    // Form submission
     const form = document.getElementById('orderForm');
     const submitBtn = document.getElementById('submitBtn');
     const spinner = document.getElementById('spinner');
     
     if (form) {
         form.addEventListener('submit', function(e) {
-            // Client-side file validation
-            const fileInput = form.querySelector('input[type="file"]');
-            if (fileInput && fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'];
-                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-                if (!allowed.includes(ext)) {
-                    alert('Unsupported file format!');
-                    e.preventDefault();
-                    return false;
-                }
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size must be under 10MB!');
-                    e.preventDefault();
-                    return false;
-                }
-            }
-            
             // Collect selected accessories data
             const selectedAccessories = [];
             accessoryCheckboxes.forEach(checkbox => {
